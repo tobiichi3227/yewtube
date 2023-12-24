@@ -4,7 +4,7 @@ mswin = os.name == "nt"
 
 
 def get_default_ddir():
-    """ Get system default Download directory, append mps dir. """
+    """Get system default Download directory, append mps dir."""
     user_home = os.path.expanduser("~")
     join, exists = os.path.join, os.path.exists
 
@@ -39,7 +39,7 @@ def get_default_ddir():
 
 
 def get_config_dir():
-    """ Get user's configuration directory. Migrate to new mps name if old."""
+    """Get user's configuration directory. Migrate to new mps name if old."""
     if mswin:
         confdir = os.environ["APPDATA"]
 

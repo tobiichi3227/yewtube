@@ -10,12 +10,11 @@ from .util import dbg
 # So old cache can be dropped
 CACHE_VERSION = 1
 
+
 def load():
-    """ Import cache file. """
+    """Import cache file."""
     if os.path.isfile(g.CACHEFILE):
-
         try:
-
             with open(g.CACHEFILE, "rb") as cf:
                 cached = pickle.load(cf)
 
@@ -31,7 +30,7 @@ def load():
 
             if 'pafy' in cached:
                 pass
-                #pafy.load_cache(cached['pafy'])
+                # pafy.load_cache(cached['pafy'])
 
             dbg(c.g + "%s cached streams imported%s", str(len(g.streams)), c.w)
 
@@ -42,12 +41,12 @@ def load():
 
 
 def save():
-    """ Save stream cache. """
+    """Save stream cache."""
     caches = dict(
         version=CACHE_VERSION,
         streams=g.streams,
         userdata=g.username_query_cache
-        #,pafy=pafy.dump_cache()
+        # ,pafy=pafy.dump_cache()
     )
 
     with open(g.CACHEFILE, "wb") as cf:

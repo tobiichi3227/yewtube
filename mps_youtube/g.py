@@ -13,8 +13,8 @@ delete_orig = True
 encoders = []
 muxapp = False
 meta = {}
-artist = "" # Mostly used for scrobbling purposes
-album = "" # Mostly used for scrobbling purposes
+artist = ""  # Mostly used for scrobbling purposes
+album = ""  # Mostly used for scrobbling purposes
 scrobble = False
 scrobble_queue = []
 lastfm_network = None
@@ -49,7 +49,7 @@ streams = collections.OrderedDict()
 pafy_pls = {}  #
 selected_pafy_pls_id = ''
 last_opened = message = content = ""
-suffix = "3" # Python 3
+suffix = "3"  # Python 3
 OLD_CFFILE = os.path.join(paths.get_config_dir(), "config")
 CFFILE = os.path.join(paths.get_config_dir(), "config.json")
 TCFILE = os.path.join(paths.get_config_dir(), "transcode")
@@ -62,14 +62,14 @@ CACHEFILE = os.path.join(paths.get_config_dir(), "cache_py_" + sys.version[0:5])
 READLINE_FILE = None
 PLAYER_OBJ = None
 categories = {
-        "film":      1,
-        "autos":     2,
-        "music":    10,
-        "sports":   17,
-        "travel":   19,
-        "gaming":   20,
-        "blogging": 21,
-        "news":     25
+    "film": 1,
+    "autos": 2,
+    "music": 10,
+    "sports": 17,
+    "travel": 19,
+    "gaming": 20,
+    "blogging": 21,
+    "news": 25,
 }
 playerargs_defaults = {
     "mpv": {
@@ -81,46 +81,45 @@ playerargs_defaults = {
         "fs": "--fs",
         "novid": "--no-video",
         "ignidx": "--demuxer-lavf-o=fflags=+ignidx",
-        "geo": "--geometry"},
+        "geo": "--geometry",
+    },
     "mplayer": {
         "title": "-title",
         "fs": "-fs",
         "novid": "-novideo",
         # "ignidx": "-lavfdopts o=fflags=+ignidx".split()
         "ignidx": "",
-        "geo": "-geometry"},
-    "vlc": {
-        "title": "--meta-title"}
-    }
+        "geo": "-geometry",
+    },
+    "vlc": {"title": "--meta-title"},
+}
 argument_commands = []
 commands = []
 
 text = {
-    "exitmsg": ("*yewtube - https://github.com/iamtalhaasghar/yewtube is a fork of\nmps-youtube - *https://github.com/mps-youtube/mps-youtube*"
-                "\nReleased under the GPLv3 license\n"
-                "(c) 2021 iamtalhaasghar\n(c) 2014, 2015 np1 and contributors*\n"""),
+    "exitmsg": (
+        "*yewtube - https://github.com/iamtalhaasghar/yewtube is a fork of\nmps-youtube - *https://github.com/mps-youtube/mps-youtube*"
+        "\nReleased under the GPLv3 license\n"
+        "(c) 2021 iamtalhaasghar\n(c) 2014, 2015 np1 and contributors*\n"
+        ""
+    ),
     "exitmsg_": (c.r, c.b, c.r, c.w),
-
     # Error / Warning messages
-
     'no playlists': "*No saved playlists found!*",
     'no playlists_': (c.r, c.w),
     'pl bad name': '*&&* is not valid a valid name. Ensure it starts with'
-                   ' a letter or _',
+    ' a letter or _',
     'pl bad name_': (c.r, c.w),
-    'pl not found': 'Playlist *&&* unknown. Saved playlists are shown '
-                    'above',
+    'pl not found': 'Playlist *&&* unknown. Saved playlists are shown ' 'above',
     'pl not found_': (c.r, c.w),
-    'pl not found advise ls': 'Playlist "*&&*" not found. Use *ls* to '
-                              'list',
+    'pl not found advise ls': 'Playlist "*&&*" not found. Use *ls* to ' 'list',
     'pl not found advise ls_': (c.y, c.w, c.g, c.w),
     'pl empty': 'Playlist is empty!',
     'advise add': 'Use *add N* to add a track',
     'advise add_': (c.g, c.w),
     'advise search': 'Search for items and then use *add* to add them',
     'advise search_': (c.g, c.w),
-    'no data': 'Error fetching data. Possible network issue.'
-               '\n*&&*',
+    'no data': 'Error fetching data. Possible network issue.' '\n*&&*',
     'no data_': (c.r, c.w),
     'use dot': 'Start your query with a *.* to perform a search',
     'use dot_': (c.g, c.w),
@@ -129,8 +128,7 @@ text = {
     'track unresolved': 'Sorry, this track is not available',
     'no player': '*&&* was not found on this system',
     'no player_': (c.y, c.w),
-    'no pl match for rename': '*Couldn\'t find matching playlist to '
-                              'rename*',
+    'no pl match for rename': '*Couldn\'t find matching playlist to ' 'rename*',
     'no pl match for rename_': (c.r, c.w),
     'invalid range': "*Invalid item / range entered!*",
     'invalid range_': (c.r, c.w),
@@ -139,14 +137,13 @@ text = {
     'no mix': 'No mix is available for the selected video',
     'mix only videos': 'Mixes are only available for videos',
     'invalid item': '*Invalid item entered!*',
-    'duplicate tracks': '*Warning* - duplicate track(s) && added to '
-                        'playlist!',
+    'duplicate tracks': '*Warning* - duplicate track(s) && added to ' 'playlist!',
     'duplicate tracks_': (c.y, c.w),
-
     # Info messages..
-
-    'select mux': ("Select [*&&*] to mux audio or [*Enter*] to download "
-                   "without audio\nThis feature is experimental!"),
+    'select mux': (
+        "Select [*&&*] to mux audio or [*Enter*] to download "
+        "without audio\nThis feature is experimental!"
+    ),
     'select mux_': (c.y, c.w, c.y, c.w),
     'pl renamed': 'Playlist *&&* renamed to *&&*',
     'pl renamed_': (c.y, c.w, c.y, c.w),
@@ -158,8 +155,7 @@ text = {
     'pl viewed_': (c.y, c.w),
     'pl help': 'Enter *open <name or ID>* to load a playlist',
     'pl help_': (c.g, c.w),
-    'added to pl': '*&&* tracks added (*&&* total [*&&*]). Use *vp* to '
-                   'view',
+    'added to pl': '*&&* tracks added (*&&* total [*&&*]). Use *vp* to ' 'view',
     'added to pl_': (c.y, c.w, c.y, c.w, c.y, c.w, c.g, c.w),
     'added to saved pl': '*&&* tracks added to *&&* (*&&* total [*&&*])',
     'added to saved pl_': (c.y, c.w, c.y, c.w, c.y, c.w, c.y, c.w),
@@ -167,8 +163,7 @@ text = {
     'song move_': (c.y, c.w, c.y, c.w),
     'song sw': ("Switched item *&&* with *&&*"),
     'song sw_': (c.y, c.w, c.y, c.w),
-    'current pl': "This is the current playlist. Use *save <name>* to save"
-                  " it",
+    'current pl': "This is the current playlist. Use *save <name>* to save" " it",
     'current pl_': (c.g, c.w),
     'help topic': ("  Enter *help <topic>* for specific help:"),
     'help topic_': (c.y, c.w),
@@ -185,4 +180,5 @@ text = {
     'mkp desc which data': "Which *tracks* to include?",
     'mkp desc which data_': (c.y, c.w),
     'mkp no valid': "*No valid tracks found in that description*",
-    'mkp no valid_': (c.y, c.w)}
+    'mkp no valid_': (c.y, c.w),
+}

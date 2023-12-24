@@ -9,6 +9,7 @@ from .. import player
 try:
     # pylint: disable=F0401
     import pyperclip
+
     has_pyperclip = True
 
 except ImportError:
@@ -16,6 +17,7 @@ except ImportError:
 
 try:
     import readline
+
     has_readline = True
 except ImportError:
     has_readline = False
@@ -30,7 +32,7 @@ from .songlist import paginatesongs
 
 @command(r'clearcache')
 def clearcache():
-    """ Clear cached items - for debugging use. """
+    """Clear cached items - for debugging use."""
     g.pafs = {}
     g.streams = {}
     util.dbg("%scache cleared%s", c.p, c.w)
@@ -39,14 +41,14 @@ def clearcache():
 
 @command(r'(?:help|h)(?:\s+([-_a-zA-Z]+))?', 'help')
 def show_help(choice):
-    """ Print help message. """
+    """Print help message."""
 
     g.content = get_help(choice)
 
 
 @command(r'(?:q|quit|exit)', 'quit', 'exit')
 def quits(showlogo=True):
-    """ Exit the program. """
+    """Exit the program."""
     if has_readline and config.INPUT_HISTORY.get:
         readline.write_history_file(g.READLINE_FILE)
         util.dbg("Saved history file")
@@ -58,7 +60,6 @@ def quits(showlogo=True):
     msg += util.F("exitmsg", 2)
 
     if config.CHECKUPDATE.get and showlogo:
-
         try:
             url = "https://raw.githubusercontent.com/iamtalhaasghar/yewtube/master/setup.py"
             v = urlopen(url, timeout=1).read().decode()
@@ -68,20 +69,24 @@ def quits(showlogo=True):
                 v = v.group(1)
 
                 if v > __version__:
-                    msg += "\n\nA newer version is available (%s). Use `help new` command to check what's changed.\n" % v
+                    msg += (
+                        "\n\nA newer version is available (%s). Use `help new` command to check what's changed.\n"
+                        % v
+                    )
 
         except (URLError, HTTPError, socket.timeout):
             util.dbg("check update timed out")
 
     screen.msgexit(msg)
 
+
 def _format_comment(n, qnt, author_name, published_date, content, reply=False):
     # poster = snippet.get('authorDisplayName')
     # shortdate = util.yt_datetime(snippet.get('publishedAt', ''))[1]
     # text = snippet.get('textDisplay', '')
-    cid = ("%s%s/%s %s" % ('└── ' if reply else '', n, qnt, c.c("g", author_name)))
-    return ("%-39s %s\n" % (cid, published_date)) + \
-            c.c("y", content.strip()) + '\n\n'
+    cid = "%s%s/%s %s" % ('└── ' if reply else '', n, qnt, c.c("g", author_name))
+    return ("%-39s %s\n" % (cid, published_date)) + c.c("y", content.strip()) + '\n\n'
+
 
 def _fetch_commentreplies(parentid):
     # return pafy.call_gdata('comments', {
@@ -90,8 +95,10 @@ def _fetch_commentreplies(parentid):
     #     'textFormat': 'plainText',
     #     'maxResults': 50}).get('items', [])
     return None
+
+
 def fetch_comments(item):
-    """ Fetch comments for item using gdata. """
+    """Fetch comments for item using gdata."""
     # pylint: disable=R0912
     # pylint: disable=R0914
     ytid, title = item.ytid, item.title
@@ -122,7 +129,13 @@ def fetch_comments(item):
 
     for n, com in enumerate(all_comments, 1):
         # snippet = com.get('topLevelComment', {}).get('snippet', {})
-        commentstext += _format_comment(n, len(all_comments), com['author']['name'], com['published'], com['content'])
+        commentstext += _format_comment(
+            n,
+            len(all_comments),
+            com['author']['name'],
+            com['published'],
+            com['content'],
+        )
         # todo fetch comment replies
         # if com.get('replyCount') > 0:
         #     replies = _fetch_commentreplies(com.get('topLevelComment').get('id'))
@@ -136,7 +149,7 @@ def fetch_comments(item):
 
 @command(r'c\s?(\d{1,4})', 'c')
 def comments(number):
-    """ Receive use request to view comments. """
+    """Receive use request to view comments."""
     if g.browse_mode == "normal":
         item = g.model[int(number) - 1]
         fetch_comments(item)
@@ -148,14 +161,13 @@ def comments(number):
 
 @command(r'x\s*(\d+)', 'x')
 def clipcopy_video(num):
-    """ Copy video/playlist url to clipboard. """
+    """Copy video/playlist url to clipboard."""
     if g.browse_mode == "ytpl":
-
         p = g.ytpls[int(num) - 1]
         link = "https://youtube.com/playlist?list=%s" % p['link']
 
     elif g.browse_mode == "normal":
-        item = (g.model[int(num) - 1])
+        item = g.model[int(num) - 1]
         link = "https://youtube.com/watch?v=%s" % item.ytid
 
     else:
@@ -164,7 +176,6 @@ def clipcopy_video(num):
         return
 
     if has_pyperclip:
-
         try:
             pyperclip.copy(link)
             g.message = c.y + link + c.w + " copied"
@@ -172,8 +183,11 @@ def clipcopy_video(num):
 
         except Exception as e:
             g.content = generate_songlist_display()
-            g.message = link + "\nError - couldn't copy to clipboard.\n" + \
-                    ''.join(traceback.format_exception_only(type(e), e))
+            g.message = (
+                link
+                + "\nError - couldn't copy to clipboard.\n"
+                + ''.join(traceback.format_exception_only(type(e), e))
+            )
 
     else:
         g.message = "pyperclip module must be installed for clipboard support\n"
@@ -183,10 +197,9 @@ def clipcopy_video(num):
 
 @command(r'X\s*(\d+)', 'X')
 def clipcopy_stream(num):
-    """ Copy content stream url to clipboard. """
+    """Copy content stream url to clipboard."""
     if g.browse_mode == "normal":
-
-        item = (g.model[int(num) - 1])
+        item = g.model[int(num) - 1]
         details = player.stream_details(item)[1]
         stream = details['url']
 
@@ -196,7 +209,6 @@ def clipcopy_stream(num):
         return
 
     if has_pyperclip:
-
         try:
             pyperclip.copy(stream)
             g.message = c.y + stream + c.w + " copied"
@@ -204,8 +216,11 @@ def clipcopy_stream(num):
 
         except Exception as e:
             g.content = generate_songlist_display()
-            g.message = stream + "\nError - couldn't copy to clipboard.\n" + \
-                    ''.join(traceback.format_exception_only(type(e), e))
+            g.message = (
+                stream
+                + "\nError - couldn't copy to clipboard.\n"
+                + ''.join(traceback.format_exception_only(type(e), e))
+            )
 
     else:
         g.message = "pyperclip module must be installed for clipboard support\n"
@@ -215,7 +230,7 @@ def clipcopy_stream(num):
 
 @command(r'i\s*(\d{1,4})', 'i')
 def video_info(num):
-    """ Get video information. """
+    """Get video information."""
     if g.browse_mode == "ytpl":
         p = g.ytpls[int(num) - 1]
 
@@ -237,32 +252,36 @@ def video_info(num):
         out = c.ul + "Playlist Info" + c.w + "\n\n"
         out += p['title']
         out += "\n" + ytpl_desc
-        out += ("\n\nAuthor     : " + p['author'])
+        out += "\n\nAuthor     : " + p['author']
         out += "\nSize       : " + str(p['size']) + " videos"
         out += "\nCreated    : " + created[1] + " " + created[2]
         out += "\nUpdated    : " + updated[1] + " " + updated[2]
         out += "\nID         : " + str(p['link'])
-        out += ("\n\n%s[%sPress enter to go back%s]%s" % (c.y, c.w, c.y, c.w))
+        out += "\n\n%s[%sPress enter to go back%s]%s" % (c.y, c.w, c.y, c.w)
         g.content = out
 
     elif g.browse_mode == "normal":
         g.content = logo(c.b)
         screen.update()
         screen.writestatus("Fetching video metadata..")
-        item = (g.model[int(num) - 1])
+        item = g.model[int(num) - 1]
         streams.get(item)
         p = pafy.get_video_info(item.ytid)
-        #pub = datetime.strptime(str(p.published), "%Y-%m-%d %H:%M:%SZ")
-        #pub = util.utc2local(pub)
+        # pub = datetime.strptime(str(p.published), "%Y-%m-%d %H:%M:%SZ")
+        # pub = util.utc2local(pub)
         screen.writestatus("Fetched")
         out = c.ul + "Video Info" + c.w + "\n\n"
         out += p['title'] or ""
         out += "\n\nDescription:\n\n" + str(p.get('description', "")) + "\n"
         out += "\nKeywords: " + str(p['keywords']) + "\n"
         out += "\nIs Live Now    : " + str(p['isLiveNow'])
-        out += "\nDuration       : " + str(timedelta(seconds=int(p['duration']['secondsText'])))
+        out += "\nDuration       : " + str(
+            timedelta(seconds=int(p['duration']['secondsText']))
+        )
         out += "\nView count     : " + "{:,}".format(int(p['viewCount']['text']))
-        out += "\nAuthor         : " + str(p['channel']['name'] + ' ~ ' + p['channel']['link'])
+        out += "\nAuthor         : " + str(
+            p['channel']['name'] + ' ~ ' + p['channel']['link']
+        )
         out += "\nPublished Date : " + str(p['publishDate'])
         out += "\nUploaded Date  : " + str(p['uploadDate'])
         out += "\nRating         : " + str(p['averageRating'])
@@ -272,8 +291,7 @@ def video_info(num):
         out += "\nFamily Safe    : " + str(p['isFamilySafe'])
         out += "\nLink           : " + str(p['link'])
         if config.SHOW_QRCODE.get:
-            out += "\n" + qrcode_display(
-                "https://youtube.com/watch?v=%s" % p.videoid)
+            out += "\n" + qrcode_display("https://youtube.com/watch?v=%s" % p.videoid)
 
         out += "\n\n%s[%sPress enter to go back%s]%s" % (c.y, c.w, c.y, c.w)
         g.content = out
@@ -281,12 +299,12 @@ def video_info(num):
 
 @command(r's\s*(\d{1,4})', 's')
 def stream_info(num):
-    """ Get stream information. """
+    """Get stream information."""
     if g.browse_mode == "normal":
         g.content = logo(c.b)
         screen.update()
         screen.writestatus("Fetching stream metadata..")
-        item = (g.model[int(num) - 1])
+        item = g.model[int(num) - 1]
         streams.get(item)
         p = util.get_pafy(item)
         setattr(p, 'ytid', p.videoid)
@@ -305,9 +323,9 @@ def stream_info(num):
 
 @command(r'history', 'history')
 def view_history(duplicates=True):
-    """ Display the user's play history """
+    """Display the user's play history"""
     history = g.userhist.get('history')
-    #g.last_opened = ""
+    # g.last_opened = ""
     try:
         hist_list = list(reversed(history.songs))
         message = "Viewing play history"
@@ -315,7 +333,9 @@ def view_history(duplicates=True):
             # List unique elements and preserve order.
             seen = set()
             seen_add = seen.add  # it makes calls to add() faster
-            hist_list = [x for x in hist_list if not (x.ytid in seen or seen_add(x.ytid))]
+            hist_list = [
+                x for x in hist_list if not (x.ytid in seen or seen_add(x.ytid))
+            ]
             message = "Viewing recent played songs"
         paginatesongs(hist_list)
         g.message = message
@@ -324,21 +344,19 @@ def view_history(duplicates=True):
         g.content = logo(c.r)
         g.message = "History empty"
 
-
     if not config.HISTORY.get:
-        g.message += "\t{1}History recording is currently off{0}".format(c.w,c.y)
-
+        g.message += "\t{1}History recording is currently off{0}".format(c.w, c.y)
 
 
 @command(r'history recent', 'history recent')
 def recent_history():
-    """ Display the recent user's played songs """
+    """Display the recent user's played songs"""
     view_history(duplicates=False)
 
 
 @command(r'history clear', 'history clear')
 def clear_history():
-    """ Clears the user's play history """
+    """Clears the user's play history"""
     g.userhist['history'].songs = []
     history.save()
     g.message = "History cleared"

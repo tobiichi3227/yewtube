@@ -7,9 +7,9 @@ from .playlist import Playlist, Video
 
 
 def save():
-    """ Save playlists.  Called each time a playlist is saved or deleted. """
+    """Save playlists.  Called each time a playlist is saved or deleted."""
     for pl in g.userpl:
-        with open(os.path.join(g.PLFOLDER, pl+'.m3u'), 'w') as plf:
+        with open(os.path.join(g.PLFOLDER, pl + '.m3u'), 'w') as plf:
             plf.write('#EXTM3U\n\n')
             for song in g.userpl[pl].songs:
                 plf.write('#EXTINF:%d,%s\n' % (song.length, song.title))
@@ -19,7 +19,7 @@ def save():
 
 
 def load():
-    """ Open playlists. Called once on script invocation. """
+    """Open playlists. Called once on script invocation."""
     _convert_playlist_to_v2()
     _convert_playlist_to_m3u()
     try:
@@ -51,13 +51,13 @@ def load():
 
 
 def delete(name):
-    """ Delete playlist, including m3u file. """
+    """Delete playlist, including m3u file."""
     del g.userpl[name]
     os.remove(os.path.join(g.PLFOLDER, name + '.m3u'))
-    
+
 
 def read_m3u(m3u):
-    """ Processes an m3u file into a Playlist object. """
+    """Processes an m3u file into a Playlist object."""
     name = os.path.basename(m3u)[:-4]
     songs = []
     expect_ytid = False
@@ -68,7 +68,11 @@ def read_m3u(m3u):
                 if line.startswith('#EXTINF:') and not expect_ytid:
                     duration, title = line.replace('#EXTINF:', '').strip().split(',', 1)
                     expect_ytid = True
-                elif not line.startswith('\n') and not line.startswith('#') and expect_ytid:
+                elif (
+                    not line.startswith('\n')
+                    and not line.startswith('#')
+                    and expect_ytid
+                ):
                     try:
                         expect_ytid = False
                         ytid = pafy.extract_video_id(line).strip()
@@ -90,7 +94,7 @@ def read_m3u(m3u):
 
 
 def _convert_playlist_to_v2():
-    """ Convert previous playlist file to v2 playlist. """
+    """Convert previous playlist file to v2 playlist."""
     # skip if previously done
     if os.path.isfile(g.PLFILE):
         return
@@ -116,7 +120,6 @@ def _convert_playlist_to_v2():
 
     # do the conversion
     for plname, plitem in old_playlists.items():
-
         songs = []
 
         for video in plitem.songs:
@@ -131,8 +134,8 @@ def _convert_playlist_to_v2():
 
 
 def _convert_playlist_to_m3u():
-    """ Convert playlist_v2 file to the m3u format. 
-        This should create a .m3u playlist for each playlist in playlist_v2. """
+    """Convert playlist_v2 file to the m3u format.
+    This should create a .m3u playlist for each playlist in playlist_v2."""
     # Skip if playlists folder exists
     if os.path.isdir(g.PLFOLDER):
         return
@@ -141,7 +144,7 @@ def _convert_playlist_to_m3u():
     elif not os.path.isfile(g.PLFILE):
         return
 
-    try: 
+    try:
         with open(g.PLFILE, 'rb') as plf:
             old_playlists = pickle.load(plf)
 
@@ -149,10 +152,12 @@ def _convert_playlist_to_m3u():
         # playlist is from a time when this module was __main__
         # https://github.com/np1/mps-youtube/issues/214
         import __main__
+
         __main__.Playlist = Playlist
         __main__.Video = Video
 
         from . import main
+
         main.Playlist = Playlist
         main.Video = Video
 

@@ -25,14 +25,11 @@ from .songlist import paginatesongs, plist
 
 ISO8601_TIMEDUR_EX = re.compile(r'PT((\d{1,3})H)?((\d{1,3})M)?((\d{1,2})S)?')
 
-DAYS = dict(day = 1,
-            week = 7,
-            month = 30,
-            year = 365)
+DAYS = dict(day=1, week=7, month=30, year=365)
 
 
 def _display_search_results(progtext, wdata, msg=None, failmsg=None):
-    """ Perform memoized url fetch, display progtext. """
+    """Perform memoized url fetch, display progtext."""
 
     loadmsg = "Searching for '%s%s%s'" % (c.y, progtext, c.w)
 
@@ -44,25 +41,24 @@ def _display_search_results(progtext, wdata, msg=None, failmsg=None):
 
             if type(wdata2) is list or not wdata2.get('nextPageToken'):
                 break
-            query = None#wdata2['nextPageToken']
-            wdata2 = None#pafy.call_gdata('search', qs)
+            query = None  # wdata2['nextPageToken']
+            wdata2 = None  # pafy.call_gdata('search', qs)
 
     # The youtube search api returns a maximum of 500 results
     length = len(wdata)
     slicer = util.IterSlicer(iter_songs(), length)
 
-    paginatesongs(slicer, length=length, msg=msg, failmsg=failmsg,
-            loadmsg=loadmsg)
+    paginatesongs(slicer, length=length, msg=msg, failmsg=failmsg, loadmsg=loadmsg)
 
 
 def token(page):
-    """ Returns a page token for a given start index. """
+    """Returns a page token for a given start index."""
     index = (page or 0) * util.getxy().max_results
-    k = index//128 - 1
+    k = index // 128 - 1
     index -= 128 * k
     f = [8, index]
     if k > 0 or index > 127:
-        f.append(k+1)
+        f.append(k + 1)
     f += [16, 0]
     b64 = base64.b64encode(bytes(f)).decode('utf8')
     return b64.strip('=')
@@ -105,17 +101,20 @@ def token(page):
 
 
 def userdata_cached(userterm):
-    """ Check if user name search term found in cache """
+    """Check if user name search term found in cache"""
     userterm = ''.join([t.strip().lower() for t in userterm.split(' ')])
     return g.username_query_cache.get(userterm)
 
 
 def cache_userdata(userterm, username, channel_id):
-    """ Cache user name and channel id tuple """
+    """Cache user name and channel id tuple"""
     userterm = ''.join([t.strip().lower() for t in userterm.split(' ')])
     g.username_query_cache[userterm] = (username, channel_id)
-    util.dbg('Cache data for username search query "{}": {} ({})'.format(
-        userterm, username, channel_id))
+    util.dbg(
+        'Cache data for username search query "{}": {} ({})'.format(
+            userterm, username, channel_id
+        )
+    )
 
     while len(g.username_query_cache) > 300:
         g.username_query_cache.popitem(last=False)
@@ -123,7 +122,7 @@ def cache_userdata(userterm, username, channel_id):
 
 
 def channelfromname(user):
-    """ Query channel id from username. """
+    """Query channel id from username."""
 
     cached = userdata_cached(user)
     if cached:
@@ -135,11 +134,12 @@ def channelfromname(user):
 
     except Exception as e:
         import traceback
+
         traceback.print_exception(type(e), e, e.__traceback__)
         g.message = "Could not retrieve information for user {}\n{}".format(
-            c.y + user + c.w, e)
-        util.dbg('Error during channel request for user {}:\n{}'.format(
-            user, e))
+            c.y + user + c.w, e
+        )
+        util.dbg('Error during channel request for user {}:\n{}'.format(user, e))
 
     # at this point, we know the channel id associated to a user name
     return None
@@ -147,7 +147,6 @@ def channelfromname(user):
 
 @command(r'channels\s+(.+)')
 def channelsearch(q_user):
-
     # qs = {'part': 'id,snippet',
     #       'q': q_user,
     #       'maxResults': 50,
@@ -160,11 +159,12 @@ def channelsearch(q_user):
         {"name": "idx", "size": 3, "heading": "Num"},
         {"name": "name", "size": 30, "heading": "Username"},
         {"name": "description", "size": "remaining", "heading": "Description"},
-        ]
+    ]
 
     def run_m(user_id):
-        """ Search ! """
+        """Search !"""
         usersearch_id(*(user_id[0]))
+
     del g.content
 
     g.content = listview.ListView(columns, QueryObj, run_m)
@@ -173,7 +173,7 @@ def channelsearch(q_user):
 
 @command(r'user\s+(.+)', 'user')
 def usersearch(q_user, identify='forUsername'):
-    """ Fetch uploads by a YouTube user. """
+    """Fetch uploads by a YouTube user."""
 
     user, _, term = (x.strip() for x in q_user.partition("/"))
     if identify == 'forUsername':
@@ -190,17 +190,19 @@ def usersearch(q_user, identify='forUsername'):
 
 
 def usersearch_id(user, channel_id, term):
-    """ Performs a search within a user's (i.e. a channel's) uploads
+    """Performs a search within a user's (i.e. a channel's) uploads
     for an optional search term with the user (i.e. the channel)
-    identified by its ID """
+    identified by its ID"""
 
-    #query = generate_search_qs(term)
-    aliases = dict(views='viewCount')  # The value of the config item is 'views' not 'viewCount'
+    # query = generate_search_qs(term)
+    aliases = dict(
+        views='viewCount'
+    )  # The value of the config item is 'views' not 'viewCount'
     if config.USER_ORDER.get:
         pass
-        #query['order'] = aliases.get(config.USER_ORDER.get,
+        # query['order'] = aliases.get(config.USER_ORDER.get,
         #        config.USER_ORDER.get)
-    #query['channelId'] = channel_id
+    # query['channelId'] = channel_id
 
     termuser = tuple([c.y + x + c.w for x in (term, user)])
     if term:
@@ -211,17 +213,20 @@ def usersearch_id(user, channel_id, term):
         msg = "Video uploads by {2}{4}{0}"
         progtext = termuser[1]
         if config.SEARCH_MUSIC:
-            failmsg = """User %s not found or has no videos in the Music category.
-Use 'set search_music False' to show results not in the Music category.""" % termuser[1]
+            failmsg = (
+                """User %s not found or has no videos in the Music category.
+Use 'set search_music False' to show results not in the Music category."""
+                % termuser[1]
+            )
         else:
-            failmsg = "User %s not found or has no videos."  % termuser[1]
+            failmsg = "User %s not found or has no videos." % termuser[1]
     msg = str(msg).format(c.w, c.y, c.y, term, user)
     results = pafy.all_videos_from_channel(channel_id)
     _display_search_results(progtext, results, msg, failmsg)
 
 
 def related_search(vitem):
-    """ Fetch videos related to vitem
+    """Fetch videos related to vitem
     vitem = {'description': str, 'length': int, 'title': str, 'ytid': str}
     """
 
@@ -232,7 +237,7 @@ def related_search(vitem):
     failmsg = "Related to %s%s%s not found" % (c.y, vitem.ytid, c.w)
 
     # todo: implement realted search in pafy
-    #_search(ttitle, vitem.title, msg, failmsg)
+    # _search(ttitle, vitem.title, msg, failmsg)
 
 
 # Livestream category search
@@ -241,8 +246,8 @@ def livestream_category_search(term):
     sel_category = g.categories.get(term, None)
 
     if not sel_category:
-        g.message = ("That is not a valid category. Valid categories are: ")
-        g.message += (", ".join(g.categories.keys()))
+        g.message = "That is not a valid category. Valid categories are: "
+        g.message += ", ".join(g.categories.keys())
         return
 
     query = {
@@ -250,21 +255,23 @@ def livestream_category_search(term):
         "eventType": "live",
         "maxResults": 50,
         "type": "video",
-        "videoCategoryId": sel_category
+        "videoCategoryId": sel_category,
     }
 
     query_obj = contentquery.ContentQuery(listview.ListLiveStream, 'search', query)
     columns = [
-              {"name": "idx", "size": 3, "heading": "Num"},
-              {"name": "title", "size": 40, "heading": "Title"},
-              {"name": "description", "size": "remaining", "heading": "Description"},
-              ]
+        {"name": "idx", "size": 3, "heading": "Num"},
+        {"name": "title", "size": 40, "heading": "Title"},
+        {"name": "description", "size": "remaining", "heading": "Description"},
+    ]
 
     def start_stream(returned):
         songs = Playlist("Search Results", [Video(*x) for x in returned])
         if not config.PLAYER.get or not util.has_exefile(config.PLAYER.get):
-            g.message = "Player not configured! Enter %sset player <player_app> "\
-                        "%s to set a player" % (c.g, c.w)
+            g.message = (
+                "Player not configured! Enter %sset player <player_app> "
+                "%s to set a player" % (c.g, c.w)
+            )
             return
         g.PLAYER_OBJ.play(songs, False, False, False)
 
@@ -275,7 +282,7 @@ def livestream_category_search(term):
 # Note: [^./] is to prevent overlap with playlist search command
 @command(r'(?:search|\.|/)\s*([^./].{1,500})', 'search')
 def search(term):
-    """ Perform search. """
+    """Perform search."""
     try:  # TODO make use of unknowns
         args, unknown = parser.parse_known_args(term.split())
         video_duration = args.duration if args.duration else 'any'
@@ -296,7 +303,7 @@ def search(term):
         return
 
     logging.info("search for %s", term)
-    #query = generate_search_qs(term, videoDuration=video_duration, after=after, category=args.category, is_live=args.live)
+    # query = generate_search_qs(term, videoDuration=video_duration, after=after, category=args.category, is_live=args.live)
 
     msg = "Search results for %s%s%s" % (c.y, term, c.w)
     failmsg = "Found nothing for %s%s%s" % (c.y, term, c.w)
@@ -306,13 +313,13 @@ def search(term):
 
 @command(r'u(?:ser)?pl\s(.*)', 'userpl', 'upl')
 def user_pls(user):
-    """ Retrieve user playlists. """
+    """Retrieve user playlists."""
     return pl_search(user, is_user=True)
 
 
 @command(r'(?:\.\.|\/\/|pls(?:earch)?\s)\s*(.*)', 'plsearch')
 def pl_search(term, page=0, splash=True, is_user=False):
-    """ Search for YouTube playlists.
+    """Search for YouTube playlists.
 
     term can be query str or dict indicating user playlist search.
 
@@ -338,7 +345,7 @@ def pl_search(term, page=0, splash=True, is_user=False):
     else:
         pldata = pafy.playlist_search(term)
 
-    playlists = get_pl_from_json(pldata)[:util.getxy().max_results]
+    playlists = get_pl_from_json(pldata)[: util.getxy().max_results]
 
     if playlists:
         g.last_search_query = (pl_search, {"term": term, "is_user": is_user})
@@ -356,7 +363,7 @@ def pl_search(term, page=0, splash=True, is_user=False):
 
 
 def get_pl_from_json(pldata):
-    """ Process json playlist data. """
+    """Process json playlist data."""
 
     try:
         items = pldata
@@ -367,24 +374,29 @@ def get_pl_from_json(pldata):
     results = []
 
     for item in items:
-        results.append(dict(
-            link=item["id"],
-            size=item["videoCount"],
-            title=item["title"],
-            author= item['channel']["name"] if 'channel' in item.keys()  else None,
-            created=item.get("publishedAt"),
-            updated=item.get('publishedAt'), #XXX Not available in API?
-            description=item.get("description")))
+        results.append(
+            dict(
+                link=item["id"],
+                size=item["videoCount"],
+                title=item["title"],
+                author=item['channel']["name"] if 'channel' in item.keys() else None,
+                created=item.get("publishedAt"),
+                updated=item.get('publishedAt'),  # XXX Not available in API?
+                description=item.get("description"),
+            )
+        )
 
     return results
 
 
 def get_track_id_from_json(item):
-    """ Try to extract video Id from various response types """
-    fields = ['contentDetails/videoId',
-              'snippet/resourceId/videoId',
-              'id/videoId',
-              'id']
+    """Try to extract video Id from various response types"""
+    fields = [
+        'contentDetails/videoId',
+        'snippet/resourceId/videoId',
+        'id/videoId',
+        'id',
+    ]
     for field in fields:
         node = item
         for p in field.split('/'):
@@ -396,7 +408,7 @@ def get_track_id_from_json(item):
 
 
 def get_tracks_from_json(jsons):
-    """ Get search results from API response """
+    """Get search results from API response"""
 
     if len(jsons) == 0:
         util.dbg("got unexpected data or no search results")
@@ -408,58 +420,70 @@ def get_tracks_from_json(jsons):
         try:
             ytid = get_track_id_from_json(item)
             duration = util.parse_video_length(item.get('duration'))
-            #stats = item.get('statistics', {})
-            #snippet = item.get('snippet', {})
+            # stats = item.get('statistics', {})
+            # snippet = item.get('snippet', {})
             title = item.get('title', '').strip()
             # instantiate video representation in local model
             cursong = Video(ytid=ytid, title=title, length=duration)
-            dislike_data = {'likes': 0, 'dislikes':0, 'rating':0}#pafy.return_dislikes(ytid)
+            dislike_data = {
+                'likes': 0,
+                'dislikes': 0,
+                'rating': 0,
+            }  # pafy.return_dislikes(ytid)
             likes = int(dislike_data['likes'])
             dislikes = int(dislike_data['dislikes'])
             # this is a very poor attempt to calculate a rating value
-            rating = int(dislike_data['rating'])#5.*likes/(likes+dislikes) if (likes+dislikes) > 0 else 0
-            category = '?'#snippet.get('categoryId')
-            publishedlocaldatetime = item.get('publishedTime','?')#util.yt_datetime_local(snippet.get('publishedAt', ''))
+            rating = int(
+                dislike_data['rating']
+            )  # 5.*likes/(likes+dislikes) if (likes+dislikes) > 0 else 0
+            category = '?'  # snippet.get('categoryId')
+            publishedlocaldatetime = item.get(
+                'publishedTime', '?'
+            )  # util.yt_datetime_local(snippet.get('publishedAt', ''))
 
             # cache video information in custom global variable store
             g.meta[ytid] = dict(
                 # tries to get localized title first, fallback to normal title
                 title=title,
                 length=str(util.fmt_time(cursong.length)),
-                rating=rating,#str('{}'.format(rating))[:4].ljust(4, "0"),
+                rating=rating,  # str('{}'.format(rating))[:4].ljust(4, "0"),
                 uploader=item['channel']['id'],
                 uploaderName=item['channel']['name'],
                 category=category,
-                aspect="custom", #XXX
-                uploaded=publishedlocaldatetime,#publishedlocaldatetime[1] if publishedlocaldatetime is not None else None,
-                uploadedTime=publishedlocaldatetime,#,publishedlocaldatetime[2] if publishedlocaldatetime is not None else None,
+                aspect="custom",  # XXX
+                uploaded=publishedlocaldatetime,  # publishedlocaldatetime[1] if publishedlocaldatetime is not None else None,
+                uploadedTime=publishedlocaldatetime,  # ,publishedlocaldatetime[2] if publishedlocaldatetime is not None else None,
                 likes=str(num_repr(likes)),
                 dislikes=str(num_repr(dislikes)),
-                commentCount='?',#str(num_repr(int(stats.get('commentCount', 0)))),
-                viewCount= item['viewCount']['text'] if 'viewCount' in item.keys() else '?')#str(num_repr(int(stats.get('viewCount', 0)))))
+                commentCount='?',  # str(num_repr(int(stats.get('commentCount', 0)))),
+                viewCount=item['viewCount']['text']
+                if 'viewCount' in item.keys()
+                else '?',
+            )  # str(num_repr(int(stats.get('viewCount', 0)))))
             songs.append(cursong)
 
         except Exception as e:
             import traceback
+
             traceback.print_exception(type(e), e, e.__traceback__)
             input('Press any key to continue...')
             util.dbg(json.dumps(item, indent=2))
-            util.dbg('Error during metadata extraction/instantiation of ' +
-                'search result {}\n{}'.format(ytid, e))
-
-
+            util.dbg(
+                'Error during metadata extraction/instantiation of '
+                + 'search result {}\n{}'.format(ytid, e)
+            )
 
     # return video objects
     return songs
 
 
 def num_repr(num):
-    """ Return up to four digit string representation of a number, eg 2.6m. """
+    """Return up to four digit string representation of a number, eg 2.6m."""
     if num <= 9999:
         return str(num)
 
     def digit_count(x):
-        """ Return number of digits. """
+        """Return number of digits."""
         return int(math.floor(math.log10(x)) + 1)
 
     digits = digit_count(num)
@@ -477,7 +501,7 @@ def num_repr(num):
 
 @command(r'u\s?([\d]{1,4})', 'u')
 def user_more(num):
-    """ Show more videos from user of vid num. """
+    """Show more videos from user of vid num."""
     if g.browse_mode != "normal":
         g.message = "User uploads must refer to a specific video item"
         g.message = c.y + g.message + c.w
@@ -487,7 +511,7 @@ def user_more(num):
     g.current_page = 0
     item = g.model[int(num) - 1]
 
-    #TODO: Cleaner way of doing this?
+    # TODO: Cleaner way of doing this?
     if item.ytid in g.meta:
         channel_id = g.meta.get(item.ytid, {}).get('uploader')
         user = g.meta.get(item.ytid, {}).get('uploaderName')
@@ -500,7 +524,7 @@ def user_more(num):
 
 @command(r'r\s?(\d{1,4})', 'r')
 def related(num):
-    """ Show videos related to to vid num. """
+    """Show videos related to to vid num."""
     if g.browse_mode != "normal":
         g.message = "Related items must refer to a specific video item"
         g.message = c.y + g.message + c.w
@@ -514,12 +538,12 @@ def related(num):
 
 @command(r'mix\s*(\d{1,4})', 'mix')
 def mix(num):
-    """ Retrieves the YouTube mix for the selected video. """
+    """Retrieves the YouTube mix for the selected video."""
     g.content = g.content or content.generate_songlist_display()
     if g.browse_mode != "normal":
         g.message = util.F('mix only videos')
     else:
-        item = (g.model[int(num) - 1])
+        item = g.model[int(num) - 1]
         if item is None:
             g.message = util.F('invalid item')
             return
@@ -561,7 +585,8 @@ def yt_url(url: str, print_title: bool = False):
         except (IOError, ValueError, Exception) as e:
             g.message = c.r + str(e) + c.w
             g.content = g.content or content.generate_songlist_display(
-                    zeromsg=g.message)
+                zeromsg=g.message
+            )
             return
 
         g.browse_mode = "normal"
@@ -580,18 +605,19 @@ def yt_url(url: str, print_title: bool = False):
 
 @command(r'url_file\s(\S+)', 'url_file')
 def yt_url_file(file_name):
-    """ Access a list of urls in a text file """
+    """Access a list of urls in a text file"""
 
-    #Open and read the file
+    # Open and read the file
     try:
         with open(file_name, "r") as fo:
             output = ' '.join([line.strip() for line in fo if line.strip()])
 
-    except (IOError):
-        g.message = c.r + 'Error while opening the file, check the validity of the path' + c.w
-        g.content = g.content or content.generate_songlist_display(
-                zeromsg=g.message)
+    except IOError:
+        g.message = (
+            c.r + 'Error while opening the file, check the validity of the path' + c.w
+        )
+        g.content = g.content or content.generate_songlist_display(zeromsg=g.message)
         return
 
-    #Finally pass the input to yt_url
+    # Finally pass the input to yt_url
     yt_url(output)

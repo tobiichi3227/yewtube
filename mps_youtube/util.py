@@ -26,9 +26,9 @@ not_utf8_environment = mswin or (
 XYTuple = collections.namedtuple('XYTuple', 'width height max_results')
 
 
-class IterSlicer():
-    """ Class that takes an iterable and allows slicing,
-        loading from the iterable as needed."""
+class IterSlicer:
+    """Class that takes an iterable and allows slicing,
+    loading from the iterable as needed."""
 
     def __init__(self, iterable, length=None):
         self.ilist = []
@@ -63,7 +63,7 @@ class IterSlicer():
 
 
 def has_exefile(filename):
-    """ Check whether file exists in path and is executable.
+    """Check whether file exists in path and is executable.
 
     :param filename: name of executable
     :type filename: str
@@ -107,17 +107,17 @@ def utf8_replace(txt):
 
 
 def xenc(stuff):
-    """ Replace unsupported characters. """
+    """Replace unsupported characters."""
     return utf8_replace(stuff) if not_utf8_environment else stuff
 
 
 def xprint(stuff, end=None):
-    """ Compatible print. """
+    """Compatible print."""
     print(xenc(stuff), end=end)
 
 
 def mswinfn(filename):
-    """ Fix filename for Windows. """
+    """Fix filename for Windows."""
     if mswin:
         filename = utf8_replace(filename) if not_utf8_environment else filename
         allowed = re.compile(r'[^\\/?*$\'"%&:<>|]')
@@ -125,8 +125,9 @@ def mswinfn(filename):
 
     return filename
 
+
 def sanitize_filename(filename, ignore_slashes=False):
-    """ Sanitize filename """
+    """Sanitize filename"""
     if not ignore_slashes:
         filename = filename.replace('/', '-')
     if macos:
@@ -138,8 +139,9 @@ def sanitize_filename(filename, ignore_slashes=False):
 
     return filename
 
+
 def set_window_title(title):
-    """ Set terminal window title. """
+    """Set terminal window title."""
     if mswin:
         ctypes.windll.kernel32.SetConsoleTitleW(xenc(title))
     else:
@@ -147,7 +149,7 @@ def set_window_title(title):
 
 
 def list_update(item, lst, remove=False):
-    """ Add or remove item from list, checking first to avoid exceptions. """
+    """Add or remove item from list, checking first to avoid exceptions."""
     if not remove and item not in lst:
         lst.append(item)
 
@@ -156,7 +158,7 @@ def list_update(item, lst, remove=False):
 
 
 def get_near_name(begin, items):
-    """ Return the closest matching playlist name that starts with begin. """
+    """Return the closest matching playlist name that starts with begin."""
     for name in sorted(items):
         if name.lower().startswith(begin.lower()):
             return name
@@ -215,15 +217,13 @@ def get_pafy(item, force=False, callback=None):
         return cached
 
     else:
-
         try:
-            p = None#pafy.new(ytid, callback=callback_fn)
+            p = None  # pafy.new(ytid, callback=callback_fn)
 
         except IOError as e:
-
             if "pafy" in str(e):
                 dbg(c.p + "retrying failed pafy get: " + ytid + c.w)
-                p = None#pafy.new(ytid, callback=callback)
+                p = None  # pafy.new(ytid, callback=callback)
 
             else:
                 raise
@@ -244,6 +244,7 @@ def getxy():
     """
     # Import here to avoid circular dependency
     from . import config
+
     if g.detectable_size:
         x, y = terminalsize.get_terminal_size()
         max_results = y - 4 if y < 54 else 50
@@ -257,7 +258,7 @@ def getxy():
 
 
 def fmt_time(seconds):
-    """ Format number of seconds to %H:%M:%S. """
+    """Format number of seconds to %H:%M:%S."""
     hms = time.strftime('%H:%M:%S', time.gmtime(int(seconds)))
     H, M, S = hms.split(":")
 
@@ -272,8 +273,9 @@ def fmt_time(seconds):
 
     return hms
 
+
 def correct_truncate(text, max_len):
-    """ Truncate a string taking into account East Asian width chars."""
+    """Truncate a string taking into account East Asian width chars."""
     str_len, out = 0, ''
 
     for c in text:
@@ -289,7 +291,7 @@ def correct_truncate(text, max_len):
 
 
 def uea_pad(num, t, direction="<", notrunc=False):
-    """ Right pad with spaces taking into account East Asian width chars. """
+    """Right pad with spaces taking into account East Asian width chars."""
     direction = direction.strip() or "<"
 
     t = ' '.join(str(t).split('\n'))
@@ -322,17 +324,17 @@ def uea_pad(num, t, direction="<", notrunc=False):
 
 
 def real_len(u, alt=False):
-    """ Try to determine width of strings displayed with monospace font. """
+    """Try to determine width of strings displayed with monospace font."""
     if not isinstance(u, str):
         u = u.decode("utf8")
 
-    u = xenc(u) # Handle replacements of unsuported characters
+    u = xenc(u)  # Handle replacements of unsuported characters
 
     ueaw = unicodedata.east_asian_width
 
     if alt:
         # widths = dict(W=2, F=2, A=1, N=0.75, H=0.5)  # original
-        widths = dict(N=.75, Na=1, W=2, F=2, A=1)
+        widths = dict(N=0.75, Na=1, W=2, F=2, A=1)
 
     else:
         widths = dict(W=2, F=2, A=1, N=1, H=0.5)
@@ -341,7 +343,7 @@ def real_len(u, alt=False):
 
 
 def yt_datetime(yt_date_time):
-    """ Return a time object, locale formated date string and locale formatted time string. """
+    """Return a time object, locale formated date string and locale formatted time string."""
     if yt_date_time is None:
         return ['Unknown', 'Unknown', 'Unknown']
     time_obj = time.strptime(yt_date_time, "%Y-%m-%dT%H:%M:%SZ")
@@ -353,7 +355,7 @@ def yt_datetime(yt_date_time):
 
 
 def yt_datetime_local(yt_date_time):
-    """ Return a datetime object, locale converted and formated date string and locale converted and formatted time string. """
+    """Return a datetime object, locale converted and formated date string and locale converted and formatted time string."""
     datetime_obj = datetime.strptime(yt_date_time, "%Y-%m-%dT%H:%M:%SZ")
     datetime_obj = utc2local(datetime_obj)
     locale_date = datetime_obj.strftime("%x")
@@ -385,7 +387,6 @@ def parse_multi(choice, end=None):
         # nreps is in the inclusive range [1,100]
         nreps = min(int(nreps), 100) if nreps else 1
         for _ in range(nreps):
-
             if x.startswith("-"):
                 x = "1" + x
 
@@ -421,7 +422,7 @@ def _bi_range(start, end):
 
 
 def is_known_player(player):
-    """ Return true if the set player is known. """
+    """Return true if the set player is known."""
     for allowed_player in g.playerargs_defaults:
         regex = r'(?:\b%s($|\.[a-zA-Z0-9]+$))' % re.escape(allowed_player)
         match = re.search(regex, player)
@@ -438,8 +439,7 @@ def is_known_player(player):
 def load_player_info(player):
     if "mpv" in player:
         g.mpv_version = _get_mpv_version(player)
-        g.mpv_options = subprocess.check_output(
-                [player, "--list-options"]).decode()
+        g.mpv_options = subprocess.check_output([player, "--list-options"]).decode()
 
         if not mswin:
             if "--input-unix-socket" in g.mpv_options:
@@ -458,14 +458,14 @@ def fetch_songs(text, title="Unknown"):
 
 
 def number_string_to_list(text):
-    """ Parses comma separated lists """
+    """Parses comma separated lists"""
     text = [x.strip() for x in text.split(",")]
     vals = []
     for line in text:
         k = line
         if "-" in line:
             separated = [int(x.strip()) for x in k.split("-")]
-            for number in list(range(separated[0]-1, separated[1])):
+            for number in list(range(separated[0] - 1, separated[1])):
                 vals.append(number)
         else:
             vals.append(k)
@@ -474,7 +474,7 @@ def number_string_to_list(text):
 
 
 def _get_mpv_version(exename):
-    """ Get version of mpv as 3-tuple. """
+    """Get version of mpv as 3-tuple."""
     o = subprocess.check_output([exename, "--version"]).decode()
     re_ver = re.compile(r"mpv (\d+)\.(\d+)\.(\d+)")
 
@@ -492,7 +492,7 @@ def _get_mpv_version(exename):
 
 def _get_mplayer_version(exename):
     o = subprocess.check_output([exename]).decode()
-    m = re.search('MPlayer SVN[\s-]r([0-9]+)', o, re.MULTILINE|re.IGNORECASE)
+    m = re.search('MPlayer SVN[\s-]r([0-9]+)', o, re.MULTILINE | re.IGNORECASE)
 
     ver = 0
     if m:
@@ -509,14 +509,16 @@ def _get_mplayer_version(exename):
 
 
 def _get_metadata(song_title):
-    ''' Get metadata from a song title '''
+    '''Get metadata from a song title'''
     t = re.sub("[\(\[].*?[\)\]]", "", song_title.lower())
     t = t.split('-')
 
     if len(t) != 2:  # If len is not 2, no way of properly knowing title for sure
         t = t[0]
         t = t.split(':')
-        if len(t) != 2:  # Ugly, but to be safe in case all these chars exist, Will improve
+        if (
+            len(t) != 2
+        ):  # Ugly, but to be safe in case all these chars exist, Will improve
             t = t[0]
             t = t.split('|')
             if len(t) != 2:
@@ -538,10 +540,10 @@ def _get_metadata(song_title):
 
 
 def _get_metadata_from_lastfm(artist, track):
-    ''' Try to get metadata with a given artist and track '''
+    '''Try to get metadata with a given artist and track'''
     url = 'https://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=12dec50313f885d407cf8132697b8712&'
-    url += urllib.parse.urlencode({"artist":  artist}) + '&'
-    url += urllib.parse.urlencode({"track":  track}) + '&'
+    url += urllib.parse.urlencode({"artist": artist}) + '&'
+    url += urllib.parse.urlencode({"track": track}) + '&'
     url += '&format=json'
 
     try:
@@ -575,15 +577,16 @@ def assign_player(player):
 
     except ImportError:
         from mps_youtube.players import GenericPlayer
+
         g.PLAYER_OBJ = GenericPlayer.GenericPlayer(player)
 
 
 class CommandCompleter:
-
     COMMANDS = []
 
     def __init__(self):
         from . import config
+
         self.SET_COMMANDS = ['set ' + i.lower() for i in config]
 
     def complete_command(self, text, state):
@@ -592,9 +595,11 @@ class CommandCompleter:
         else:
             results = [x for x in self.COMMANDS if x.startswith(text)] + [None]
         return results[state]
+
     def add_cmd(self, val):
-        if(not val in self.COMMANDS):
+        if not val in self.COMMANDS:
             self.COMMANDS.append(val)
+
 
 def parse_video_length(duration):
     '''
@@ -605,6 +610,10 @@ def parse_video_length(duration):
         if len(duration_tokens) == 2:
             return int(duration_tokens[0]) * 60 + int(duration_tokens[1])
         else:
-            return int(duration_tokens[0]) * 3600 + int(duration_tokens[1]) * 60 + int(duration_tokens[2])
+            return (
+                int(duration_tokens[0]) * 3600
+                + int(duration_tokens[1]) * 60
+                + int(duration_tokens[2])
+            )
     else:
         return 10

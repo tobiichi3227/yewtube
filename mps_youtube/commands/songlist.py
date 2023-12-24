@@ -7,8 +7,16 @@ from ..playlist import Video
 from . import command, PL
 
 
-def paginatesongs(func, page=0, splash=True, dumps=False,
-        length=None, msg=None, failmsg=None, loadmsg=None):
+def paginatesongs(
+    func,
+    page=0,
+    splash=True,
+    dumps=False,
+    length=None,
+    msg=None,
+    failmsg=None,
+    loadmsg=None,
+):
     """
     A utility function for handling lists of songs, so that
     the pagination and the dump command will work properly.
@@ -57,8 +65,13 @@ def paginatesongs(func, page=0, splash=True, dumps=False,
     if length is None:
         length = len(func)
 
-    args = {'func':func, 'length':length, 'msg':msg,
-            'failmsg':failmsg, 'loadmsg': loadmsg}
+    args = {
+        'func': func,
+        'length': length,
+        'msg': msg,
+        'failmsg': failmsg,
+        'loadmsg': loadmsg,
+    }
     g.last_search_query = (paginatesongs, args)
     g.browse_mode = "normal"
     g.current_page = page
@@ -77,7 +90,7 @@ def paginatesongs(func, page=0, splash=True, dumps=False,
 
 @command(r'pl\s+%s' % PL, 'pl')
 def plist(parturl):
-    """ Retrieve YouTube playlist. """
+    """Retrieve YouTube playlist."""
 
     if parturl in g.pafy_pls:
         ytpl, plitems = g.pafy_pls[parturl]
@@ -88,7 +101,10 @@ def plist(parturl):
         g.pafy_pls[parturl] = (ytpl, plitems)
 
     def pl_seg(s, e):
-        return [Video(i['id'], i['title'], util.parse_video_length(i['duration'])) for i in plitems[s:e]]
+        return [
+            Video(i['id'], i['title'], util.parse_video_length(i['duration']))
+            for i in plitems[s:e]
+        ]
 
     msg = "Showing YouTube playlist %s" % (c.y + ytpl.info['info']['title'] + c.w)
     loadmsg = "Retrieving YouTube playlist"
@@ -97,7 +113,7 @@ def plist(parturl):
 
 @command(r'(rm|add)\s*(-?\d[-,\d\s]{,250})', 'rm', 'add')
 def songlist_rm_add(action, songrange):
-    """ Remove or add tracks. works directly on user input. """
+    """Remove or add tracks. works directly on user input."""
     selection = util.parse_multi(songrange)
 
     if action == "add":
@@ -132,7 +148,7 @@ def songlist_rm_add(action, songrange):
 
 @command(r'(mv|sw)\s*(\d{1,4})\s*[\s,]\s*(\d{1,4})', 'mv', 'sw')
 def songlist_mv_sw(action, a, b):
-    """ Move a song or swap two songs. """
+    """Move a song or swap two songs."""
     i, j = int(a) - 1, int(b) - 1
 
     if action == "mv":
@@ -148,13 +164,13 @@ def songlist_mv_sw(action, a, b):
 
 @command(r'(n|p)\s*(\d{1,2})?')
 def nextprev(np, page=None):
-    """ Get next / previous search results. """
+    """Get next / previous search results."""
     if isinstance(g.content, content.PaginatedContent):
         page_count = g.content.numPages()
         function = g.content.getPage
         args = {}
     else:
-        page_count = math.ceil(g.result_count/util.getxy().max_results)
+        page_count = math.ceil(g.result_count / util.getxy().max_results)
         function, args = g.last_search_query
 
     good = False
@@ -166,8 +182,8 @@ def nextprev(np, page=None):
                 good = True
 
         elif np == "p":
-            if page and int(page) in range(1,20):
-                g.current_page = int(page)-1
+            if page and int(page) in range(1, 20):
+                g.current_page = int(page) - 1
                 good = True
 
             elif g.current_page > 0:
@@ -188,7 +204,7 @@ def nextprev(np, page=None):
 
 @command(r'(un)?dump', 'dump', 'undump')
 def dump(un):
-    """ Show entire playlist. """
+    """Show entire playlist."""
     func, args = g.last_search_query
 
     if func is paginatesongs:
@@ -203,14 +219,15 @@ def dump(un):
 
 @command(r'shuffle', 'shuffle')
 def shuffle_fn():
-    """ Shuffle displayed items. """
+    """Shuffle displayed items."""
     random.shuffle(g.model.songs)
     g.message = c.y + "Items shuffled" + c.w
     g.content = content.generate_songlist_display()
 
+
 @command(r'shuffle all', 'shuffle all')
 def shuffle_playlist():
-    """ Shuffle entire loaded playlist. """
+    """Shuffle entire loaded playlist."""
     songs = content.get_last_query()
 
     if songs:
@@ -220,9 +237,10 @@ def shuffle_playlist():
         g.message = c.y + "Shuffled entire playlist" + c.w
         g.content = content.generate_songlist_display()
 
+
 @command(r'reverse', 'reverse')
 def reverse_songs():
-    """ Reverse order of displayed items. """
+    """Reverse order of displayed items."""
     g.model.songs = g.model.songs[::-1]
     g.message = c.y + "Reversed displayed songs" + c.w
     g.content = content.generate_songlist_display()
@@ -230,21 +248,22 @@ def reverse_songs():
 
 @command(r'reverse\s*(\d{1,4})\s*-\s*(\d{1,4})\s*', 'reverse')
 def reverse_songs_range(lower, upper):
-    """ Reverse the songs within a specified range. """
+    """Reverse the songs within a specified range."""
     lower, upper = int(lower), int(upper)
-    if lower > upper: lower, upper = upper, lower
-    
-    g.model.songs[lower-1:upper] = reversed(g.model.songs[lower-1:upper])
+    if lower > upper:
+        lower, upper = upper, lower
+
+    g.model.songs[lower - 1 : upper] = reversed(g.model.songs[lower - 1 : upper])
     g.message = c.y + "Reversed range: " + str(lower) + "-" + str(upper) + c.w
     g.content = content.generate_songlist_display()
-    
+
 
 @command(r'reverse all', 'reverse all')
 def reverse_playlist():
-    """ Reverse order of entire loaded playlist. """
+    """Reverse order of entire loaded playlist."""
     songs = content.get_last_query()
 
-    if songs:   
+    if songs:
         paginatesongs(list(reversed(songs)))
         g.message = c.y + "Reversed entire playlist" + c.w
         g.content = content.generate_songlist_display()

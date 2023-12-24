@@ -74,8 +74,7 @@ def find_best_match(query):
     wdata = pafy.call_gdata('search', qs)
     results = search.get_tracks_from_json(wdata)
     if results:
-        res, score = album_search._best_song_match(
-            results, query, 0.1, 1.0, 0.0)
+        res, score = album_search._best_song_match(results, query, 0.1, 1.0, 0.0)
         return res
     return None
 
@@ -83,13 +82,14 @@ def find_best_match(query):
 def random_plname():
     """Generates a random alphanumeric string of 6 characters"""
     n_chars = 6
-    return ''.join(choice(string.ascii_lowercase + string.digits)
-                   for _ in range(n_chars))
+    return ''.join(
+        choice(string.ascii_lowercase + string.digits) for _ in range(n_chars)
+    )
 
 
 def description_generator(text):
-    """ Fetches a videos description and parses it for
-        <artist> - <track> combinations
+    """Fetches a videos description and parses it for
+    <artist> - <track> combinations
     """
     if not isinstance(g.model, Playlist):
         g.message = util.F("mkp desc unknown")
@@ -115,8 +115,8 @@ def description_generator(text):
     ]
 
     def run_m(idx):
-        """ Create playlist based on the
-            results selected
+        """Create playlist based on the
+        results selected
         """
         create_playlist(idx, title)
 

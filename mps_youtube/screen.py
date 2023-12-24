@@ -9,7 +9,7 @@ mswin = os.name == "nt"
 
 
 def update(fill_blank=True):
-    """ Display content, show message, blank screen."""
+    """Display content, show message, blank screen."""
     clear()
 
     if isinstance(g.content, content.PaginatedContent):
@@ -40,31 +40,31 @@ def clear():
 
 
 def reset_terminal():
-    """ Reset terminal control character and modes for non Win OS's. """
+    """Reset terminal control character and modes for non Win OS's."""
     if not mswin:
         subprocess.call(["tset", "-c"])
 
 
 def writestatus(text, mute=False):
-    """ Update status line. """
+    """Update status line."""
     if not mute and config.SHOW_STATUS.get:
         _writeline(text)
 
 
 def _writeline(text):
-    """ Print text on same line. """
+    """Print text on same line."""
     width = util.getxy().width
     spaces = width - len(text) - 1
     if mswin:
         # Avoids creating new line every time it is run
         # TODO: Figure out why this is needed
-        spaces =- 1
-    text = text[:width - 3]
+        spaces = -1
+    text = text[: width - 3]
     sys.stdout.write(" " + text + (" " * spaces) + "\r")
     sys.stdout.flush()
 
 
 def msgexit(msg, code=0):
-    """ Print a message and exit. """
+    """Print a message and exit."""
     util.xprint(msg)
     sys.exit(code)

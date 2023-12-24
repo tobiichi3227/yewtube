@@ -17,7 +17,7 @@ class vlc(CmdPlayer):
 
         if config.VLC_DUMMY_INTERFACE.get:
             print('[VLC DUMMY INTERFACE] Playing "{0}" ...'.format(self.song.title))
-            args.extend(('-I', 'dummy')) # vlc without gui
+            args.extend(('-I', 'dummy'))  # vlc without gui
         if not config.SHOW_VIDEO.get:
             args.extend(("--no-video",))
 
@@ -43,9 +43,12 @@ class vlc(CmdPlayer):
     def _kill_instance(self):
         import os
         from sys import platform
+
         if platform == "linux" or platform == "linux2":
             os.system('pkill -f vlc')
         elif platform == "darwin":
             os.system('killall vlc')
         elif platform == "win32":
-            os.system('taskkill /im vlc.exe /f') # https://stackoverflow.com/questions/49988/really-killing-a-process-in-windows
+            os.system(
+                'taskkill /im vlc.exe /f'
+            )  # https://stackoverflow.com/questions/49988/really-killing-a-process-in-windows

@@ -6,7 +6,7 @@ from . import g, c, screen, config, util
 
 
 def prune():
-    """ Keep cache size in check. """
+    """Keep cache size in check."""
     while len(g.pafs) > g.max_cached_streams:
         g.pafs.popitem(last=False)
 
@@ -24,7 +24,11 @@ def prune():
     for oldpaf in oldpafs:
         g.pafs.pop(oldpaf, 0)
 
-    oldstreams = [k for k in g.streams if g.streams[k]['expiry'] is None or g.streams[k]['expiry'] < now]
+    oldstreams = [
+        k
+        for k in g.streams
+        if g.streams[k]['expiry'] is None or g.streams[k]['expiry'] < now
+    ]
 
     if len(oldstreams):
         util.dbg(c.r + "%s old stream items pruned%s", len(oldstreams), c.w)
@@ -36,21 +40,23 @@ def prune():
 
 
 def get(vid, force=False, callback=None, threeD=False):
-    """ Get all streams as a dict.  callback function passed to get_pafy. """
+    """Get all streams as a dict.  callback function passed to get_pafy."""
     now = time.time()
     ytid = vid.ytid
-    have_stream = g.streams.get(ytid) and (g.streams[ytid]['expiry'] > now if g.streams[ytid]['expiry'] is not None else False)
+    have_stream = g.streams.get(ytid) and (
+        g.streams[ytid]['expiry'] > now
+        if g.streams[ytid]['expiry'] is not None
+        else False
+    )
     prfx = "preload: " if not callback else ""
 
     if not force and have_stream:
         ss = str(int(g.streams[ytid]['expiry'] - now) // 60)
-        util.dbg("%s%sGot streams from cache (%s mins left)%s",
-                c.g, prfx, ss, c.w)
+        util.dbg("%s%sGot streams from cache (%s mins left)%s", c.g, prfx, ss, c.w)
         return g.streams.get(ytid)['meta']
 
-
-    #p = None#util.get_pafy(vid, force=force, callback=callback)
-    #ps = p.allstreams if threeD else [x for x in p.allstreams if not x.threed]
+    # p = None#util.get_pafy(vid, force=force, callback=callback)
+    # ps = p.allstreams if threeD else [x for x in p.allstreams if not x.threed]
     ps = pafy.get_video_streams(ytid)
 
     try:
@@ -61,22 +67,31 @@ def get(vid, force=False, callback=None, threeD=False):
         # refetch if problem
         util.dbg("%s****Type Error in get_streams. Retrying%s", c.r, c.w)
         p = util.get_pafy(vid, force=True, callback=callback)
-        ps = p.allstreams if threeD else [x for x in p.allstreams
-                                          if not x.threed]
+        ps = p.allstreams if threeD else [x for x in p.allstreams if not x.threed]
 
-    streams = [{"url": s['url'],
-                "ext": s['ext'],
-                "quality": s['resolution'],
-                "rawbitrate": s.get('bitrate',-1),
-                "mtype": 'audio' if 'audio' in s['resolution'] else ('video' if s['acodec'] != 'none' else '?'),
-                "size": int(s.get('filesize') if s.get('filesize') is not None else s.get('filesize_approx', -1))} for s in ps]
-
+    streams = [
+        {
+            "url": s['url'],
+            "ext": s['ext'],
+            "quality": s['resolution'],
+            "rawbitrate": s.get('bitrate', -1),
+            "mtype": 'audio'
+            if 'audio' in s['resolution']
+            else ('video' if s['acodec'] != 'none' else '?'),
+            "size": int(
+                s.get('filesize')
+                if s.get('filesize') is not None
+                else s.get('filesize_approx', -1)
+            ),
+        }
+        for s in ps
+    ]
 
     if 'manifest' in streams[0]['url']:
         expiry = float(streams[0]['url'].split('/expire/')[1].split('/')[0])
     else:
         temp = streams[0]['url'].split('expire=')[1]
-        expiry = float(temp[:temp.find('&')])
+        expiry = float(temp[: temp.find('&')])
 
     g.streams[ytid] = dict(expiry=expiry, meta=streams)
     prune()
@@ -84,16 +99,16 @@ def get(vid, force=False, callback=None, threeD=False):
 
 
 def select(slist, q=0, audio=False, m4a_ok=True, maxres=None):
-    """ Select a stream from stream list. """
+    """Select a stream from stream list."""
     maxres = maxres or config.MAX_RES.get
     slist = slist['meta'] if isinstance(slist, dict) else slist
 
     def okres(x):
-        """ Return True if resolution is within user specified maxres. """
+        """Return True if resolution is within user specified maxres."""
         return int(x['quality'].split("x")[1]) <= maxres
 
     def getq(x):
-        """ Return height aspect of resolution, eg 640x480 => 480. """
+        """Return height aspect of resolution, eg 640x480 => 480."""
         return int(x['quality'].split("x")[1])
 
     def getbitrate(x):
@@ -137,7 +152,7 @@ def select(slist, q=0, audio=False, m4a_ok=True, maxres=None):
 
 
 def get_size(ytid, url, preloading=False):
-    """ Get size of stream, try stream cache first. """
+    """Get size of stream, try stream cache first."""
     # try cached value
     stream = [x for x in g.streams[ytid]['meta'] if x['url'] == url][0]
     size = stream['size']
@@ -155,7 +170,7 @@ def get_size(ytid, url, preloading=False):
 
 
 def _get_content_length(url, preloading=False):
-    """ Return content length of a url. """
+    """Return content length of a url."""
     prefix = "preload: " if preloading else ""
     util.dbg(c.y + prefix + "getting content-length header" + c.w)
     response = urlopen(url)
@@ -165,7 +180,7 @@ def _get_content_length(url, preloading=False):
 
 
 def preload(song, delay=2, override=False):
-    """  Get streams. """
+    """Get streams."""
     args = (song, delay, override)
     t = threading.Thread(target=_preload, args=args)
     t.daemon = True
@@ -173,7 +188,7 @@ def preload(song, delay=2, override=False):
 
 
 def _preload(song, delay, override):
-    """  Get streams (runs in separate thread). """
+    """Get streams (runs in separate thread)."""
     if g.preload_disabled:
         return
 
@@ -197,6 +212,7 @@ def _preload(song, delay, override):
 
     except (ValueError, AttributeError, IOError) as e:
         import traceback
+
         traceback.print_exception(type(e), e, e.__traceback__)
         input("Press any key to continue...")
         util.dbg(e)  # Fail silently on preload

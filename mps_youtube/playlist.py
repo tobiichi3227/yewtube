@@ -1,14 +1,14 @@
 class Playlist:
 
-    """ Representation of a playist, has list of songs. """
+    """Representation of a playist, has list of songs."""
 
     def __init__(self, name=None, songs=None):
-        """ class members. """
+        """class members."""
         self.name = name
         self.songs = songs or []
 
     def __len__(self):
-        """ Return number of tracks. """
+        """Return number of tracks."""
         return len(self.songs)
 
     def __getitem__(self, sliced):
@@ -23,7 +23,7 @@ class Playlist:
 
     @property
     def duration(self):
-        """ Sum duration of the playlist. """
+        """Sum duration of the playlist."""
         duration = sum(s.length for s in self.songs)
         mins, secs = divmod(duration, 60)
         hours, mins = divmod(mins, 60)
@@ -33,10 +33,12 @@ class Playlist:
 
 class Video:
 
-    """ Class to represent a YouTube video. """
+    """Class to represent a YouTube video."""
+
     description = ""
+
     def __init__(self, ytid, title, length):
-        """ class members. """
+        """class members."""
         self.ytid = ytid
         self.title = title
         self.length = int(length)

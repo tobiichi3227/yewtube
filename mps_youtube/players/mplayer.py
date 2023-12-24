@@ -18,7 +18,7 @@ class mplayer(CmdPlayer):
         self.mplayer_version = _get_mplayer_version(player)
 
     def _generate_real_playerargs(self):
-        """ Generate args for player command.
+        """Generate args for player command.
 
         Return args.
 
@@ -28,8 +28,10 @@ class mplayer(CmdPlayer):
             ver = self.mplayer_version
             # Mplayer too old to support https
             if not (ver > (1, 1) if isinstance(ver, tuple) else ver >= 37294):
-                raise IOError("%s : Sorry mplayer doesn't support this stream. "
-                              "Use mpv or update mplayer to a newer version" % self.song.title)
+                raise IOError(
+                    "%s : Sorry mplayer doesn't support this stream. "
+                    "Use mpv or update mplayer to a newer version" % self.song.title
+                )
 
         args = config.PLAYERARGS.get.strip().split()
 
@@ -52,8 +54,9 @@ class mplayer(CmdPlayer):
         if self.override == "a-v":
             util.list_update(pd["novid"], args)
 
-        elif ((config.FULLSCREEN.get and self.override != "window")
-                or self.override == "fullscreen"):
+        elif (
+            config.FULLSCREEN.get and self.override != "window"
+        ) or self.override == "fullscreen":
             util.list_update(pd["fs"], args)
 
         # prevent ffmpeg issue (https://github.com/mpv-player/mpv/issues/579)
@@ -96,8 +99,13 @@ class mplayer(CmdPlayer):
             cmd.extend(['-input', 'file=' + self.fifopath])
             g.mprisctl.send(('mplayer-fifo', self.fifopath))
 
-        self.p = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE,
-                              stderr=subprocess.STDOUT, bufsize=0)
+        self.p = subprocess.Popen(
+            cmd,
+            shell=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            bufsize=0,
+        )
         self._player_status(self.songdata + "; ", self.song.length)
         returncode = self.p.wait()
         print(returncode)
@@ -112,7 +120,7 @@ class mplayer(CmdPlayer):
             self.next()
 
     def _player_status(self, prefix, songlength=0):
-        """ Capture time progress from player output. Write status line. """
+        """Capture time progress from player output. Write status line."""
         # pylint: disable=R0914, R0912
         re_player = re.compile(r"A:\s*(?P<elapsed_s>\d+)\.\d\s*")
         re_volume = re.compile(r"Volume:\s*(?P<volume>\d+)\s*%")
@@ -127,7 +135,6 @@ class mplayer(CmdPlayer):
             char = stdstream.read(1).decode("utf-8", errors="ignore")
 
             if char in '\r\n':
-
                 mv = re_volume.search(buff)
 
                 if mv:
@@ -136,24 +143,22 @@ class mplayer(CmdPlayer):
                 match_object = re_player.match(buff)
 
                 if match_object:
-
                     try:
                         h, m, s = map(int, match_object.groups())
                         elapsed_s = h * 3600 + m * 60 + s
 
                     except ValueError:
-
                         try:
-                            elapsed_s = int(match_object.group('elapsed_s') or
-                                            '0')
+                            elapsed_s = int(match_object.group('elapsed_s') or '0')
 
                         except ValueError:
                             continue
 
                     if volume_level and volume_level != g.volume:
                         g.volume = volume_level
-                    self.make_status_line(elapsed_s, prefix, songlength,
-                                          volume=volume_level)
+                    self.make_status_line(
+                        elapsed_s, prefix, songlength, volume=volume_level
+                    )
 
                 if buff.startswith('ANS_volume='):
                     volume_level = round(float(buff.split('=')[1]))
@@ -171,7 +176,7 @@ class mplayer(CmdPlayer):
                 buff += char
 
     def _help(self, short=True):
-        """ Mplayer help.  """
+        """Mplayer help."""
 
         volume = "[{0}9{1}] volume [{0}0{1}]      [{0}CTRL-C{1}] return"
         seek = "[{0}\u2190{1}] seek [{0}\u2192{1}]"
@@ -192,7 +197,7 @@ class mplayer(CmdPlayer):
 
 
 def _get_input_file():
-    """ Check for existence of custom input file.
+    """Check for existence of custom input file.
 
     Return file name of temp input file with yewtube mappings included
     """
@@ -211,8 +216,14 @@ def _get_input_file():
     conf = conf.replace("pt_step -1", "quit 42")
     conf = conf.replace("playlist_next", "quit")
     conf = conf.replace("pt_step 1", "quit")
-    standard_cmds = ['q quit 43\n', '> quit\n', '< quit 42\n', 'NEXT quit\n',
-                     'PREV quit 42\n', 'ENTER quit\n']
+    standard_cmds = [
+        'q quit 43\n',
+        '> quit\n',
+        '< quit 42\n',
+        'NEXT quit\n',
+        'PREV quit 42\n',
+        'ENTER quit\n',
+    ]
     bound_keys = [i.split()[0] for i in conf.splitlines() if i.split()]
 
     for i in standard_cmds:
@@ -221,8 +232,9 @@ def _get_input_file():
         if key not in bound_keys:
             conf += i
 
-    with tempfile.NamedTemporaryFile('w', prefix='mpsyt-input',
-                                     delete=False) as tmpfile:
+    with tempfile.NamedTemporaryFile(
+        'w', prefix='mpsyt-input', delete=False
+    ) as tmpfile:
         tmpfile.write(conf)
         return tmpfile.name
 

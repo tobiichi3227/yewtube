@@ -10,6 +10,7 @@ import tempfile
 try:
     # pylint: disable=F0401
     import colorama
+
     has_colorama = True
 
 except ImportError:
@@ -17,6 +18,7 @@ except ImportError:
 
 try:
     import readline
+
     readline.set_history_length(2000)
     has_readline = True
 
@@ -31,7 +33,7 @@ mswin = os.name == "nt"
 
 
 def init():
-    """ Initial setup. """
+    """Initial setup."""
 
     _process_cl_args()
 
@@ -43,7 +45,6 @@ def init():
     config.convert_old_cf_to_json()
 
     if not os.path.exists(g.CFFILE):
-
         if has_exefile(vlc):
             config.PLAYER.set(vlc)
 
@@ -58,9 +59,14 @@ def init():
     else:
         config.load()
         try:
-            assign_player(config.PLAYER.get)  # Player is not assigned when config is loaded
+            assign_player(
+                config.PLAYER.get
+            )  # Player is not assigned when config is loaded
         except Exception as ex:
-            g.message = "%sFailed to get %s`s version. Probabily it is not installed. Try installing it again or change player using `set player <player_name>` %s" %(c.y, config.PLAYER.get , c.w)
+            g.message = (
+                "%sFailed to get %s`s version. Probabily it is not installed. Try installing it again or change player using `set player <player_name>` %s"
+                % (c.y, config.PLAYER.get, c.w)
+            )
             screen.update()
             input("Press Enter to go back to main menu.")
 
@@ -95,6 +101,7 @@ def init():
     if config.MPRIS.get:
         try:
             from . import mpris
+
             conn1, conn2 = multiprocessing.Pipe()
             g.mprisctl = mpris.MprisConnection(conn1)
             t = multiprocessing.Process(target=mpris.main, args=(conn2,))
@@ -105,7 +112,7 @@ def init():
 
 
 def _init_transcode():
-    """ Create transcoding presets if not present.
+    """Create transcoding presets if not present.
 
     Read transcoding presets.
     """
@@ -178,7 +185,6 @@ command: ENCODER_PATH -i IN -codec:a wmav2 -q:a 0 OUT.EXT"""
         e = {}
 
         for line in tcf.readlines():
-
             if line.startswith("TRANSCODER_PATH:"):
                 m = re.match("TRANSCODER_PATH:(.*)", line).group(1)
                 g.transcoder_path = m.strip()
@@ -206,7 +212,7 @@ command: ENCODER_PATH -i IN -codec:a wmav2 -q:a 0 OUT.EXT"""
 
 
 def _init_readline():
-    """ Enable readline for input history. """
+    """Enable readline for input history."""
     if g.command_line:
         return
 
@@ -219,7 +225,7 @@ def _init_readline():
 
 
 def _process_cl_args():
-    """ Process command line arguments. """
+    """Process command line arguments."""
 
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument('commands', nargs='*')
@@ -265,7 +271,7 @@ def _process_cl_args():
 
 
 def _get_version_info():
-    """ Return version and platform info. """
+    """Return version and platform info."""
     # pafy_version = pafy.__version__
     # youtube_dl_version = None
     # if tuple(map(int, pafy_version.split('.'))) >= (0, 5, 0):

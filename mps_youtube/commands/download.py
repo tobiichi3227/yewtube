@@ -16,7 +16,7 @@ from .songlist import dump, plist
 
 @command(r'(dv|da|d|dl|download)\s*(\d{1,4})', 'da', 'dv', 'd', 'dl', 'download')
 def download(dltype, num):
-    """ Download a track or playlist by menu item number. """
+    """Download a track or playlist by menu item number."""
     # This function needs refactoring!
     # pylint: disable=R0912
     # pylint: disable=R0914
@@ -38,7 +38,7 @@ def download(dltype, num):
         return
 
     screen.writestatus("Fetching video info...")
-    song = (g.model[int(num) - 1])
+    song = g.model[int(num) - 1]
 
     # best = dltype.startswith("dv") or dltype.startswith("da")
     #
@@ -88,7 +88,9 @@ def download(dltype, num):
         # perform download(s)
         # dl_filenames = [args[1]]
         # f = _download(*args, **kwargs)
-        success = pafy.download_video(song.ytid, config.DDIR.get, True if dltype.startswith("da") else False)
+        success = pafy.download_video(
+            song.ytid, config.DDIR.get, True if dltype.startswith("da") else False
+        )
         if success:
             g.message = "Saved \'" + song.title + "\' to " + c.g + config.DDIR.get + c.w
 
@@ -128,7 +130,7 @@ def download(dltype, num):
 
 @command(r'(da|dv)\s+((?:\d+\s\d+|-\d+|\d+-|\d+,)(?:[\d\s,-]*))', 'da', 'dv')
 def down_many(dltype, choice, subdir=None):
-    """ Download multiple items. """
+    """Download multiple items."""
     choice = util.parse_multi(choice)
     choice = list(set(choice))
     downsongs = [g.model[int(x) - 1] for x in choice]
@@ -139,7 +141,7 @@ def down_many(dltype, choice, subdir=None):
     msg = ""
 
     def handle_error(message):
-        """ Handle error in download. """
+        """Handle error in download."""
         g.message = message
         g.content = disp
         screen.update()
@@ -192,7 +194,7 @@ def down_many(dltype, choice, subdir=None):
 
 @command(r'(da|dv)pl\s+%s' % PL, 'dapl', 'dvpl')
 def down_plist(dltype, parturl):
-    """ Download YouTube playlist. """
+    """Download YouTube playlist."""
 
     plist(parturl)
     dump(False)
@@ -207,7 +209,7 @@ def down_plist(dltype, parturl):
 
 @command(r'(da|dv)upl\s+(.*)', 'daupl', 'dvupl')
 def down_user_pls(dltype, user):
-    """ Download all user playlists. """
+    """Download all user playlists."""
     user_pls(user)
     for i in g.ytpls:
         down_plist(dltype, i.get('link'))
@@ -216,7 +218,7 @@ def down_user_pls(dltype, user):
 
 
 def _make_fname(song, ext=None, av=None, subdir=None):
-    """" Create download directory, generate filename. """
+    """ " Create download directory, generate filename."""
     # pylint: disable=E1103
     # Instance of 'bool' has no 'extension' member (some types not inferable)
     ddir = os.path.join(config.DDIR.get, subdir) if subdir else config.DDIR.get
@@ -224,8 +226,7 @@ def _make_fname(song, ext=None, av=None, subdir=None):
         os.makedirs(ddir)
 
     if not ext:
-        stream = streams.select(streams.get(song),
-                audio=av == "audio", m4a_ok=True)
+        stream = streams.select(streams.get(song), audio=av == "audio", m4a_ok=True)
         ext = stream['ext']
 
     # filename = song.title[:59] + "." + ext
@@ -237,15 +238,14 @@ def _make_fname(song, ext=None, av=None, subdir=None):
 
 
 def extract_metadata(name):
-    """ Try to determine metadata from video title. """
+    """Try to determine metadata from video title."""
     seps = name.count(" - ")
     artist = title = None
 
     if seps == 1:
-
         pos = name.find(" - ")
         artist = name[:pos].strip()
-        title = name[pos + 3:].strip()
+        title = name[pos + 3 :].strip()
 
     else:
         title = name.strip()
@@ -254,7 +254,7 @@ def extract_metadata(name):
 
 
 def remux_audio(filename, title):
-    """ Remux audio file. Insert limited metadata tags. """
+    """Remux audio file. Insert limited metadata tags."""
     util.dbg("starting remux")
     temp_file = filename + "." + str(random.randint(10000, 99999))
     os.rename(filename, temp_file)
@@ -262,8 +262,11 @@ def remux_audio(filename, title):
     metadata = ["title=%s" % meta["title"]]
 
     if meta["artist"]:
-        metadata = ["title=%s" % meta["title"], "-metadata",
-                    "artist=%s" % meta["artist"]]
+        metadata = [
+            "title=%s" % meta["title"],
+            "-metadata",
+            "artist=%s" % meta["artist"],
+        ]
 
     cmd = [g.muxapp, "-y", "-i", temp_file, "-acodec", "copy", "-metadata"]
     cmd += metadata + ["-vn", filename]
@@ -283,7 +286,7 @@ def remux_audio(filename, title):
 
 
 def transcode(filename, enc_data):
-    """ Re encode a download. """
+    """Re encode a download."""
     base = os.path.splitext(filename)[0]
     exe = g.muxapp if g.transcoder_path == "auto" else g.transcoder_path
 
@@ -297,7 +300,6 @@ def transcode(filename, enc_data):
     newcom, outfn = command[::], ""
 
     for n, d in enumerate(command):
-
         if d == "ENCODER_PATH":
             newcom[n] = exe
 
@@ -319,13 +321,13 @@ def transcode(filename, enc_data):
 
 
 def external_download(song, filename, url):
-    """ Perform download using external application. """
+    """Perform download using external application."""
     cmd = config.DOWNLOAD_COMMAND.get
     ddir, basename = config.DDIR.get, os.path.basename(filename)
     cmd_list = shlex.split(cmd)
 
     def list_string_sub(orig, repl, lst):
-        """ Replace substrings for items in a list. """
+        """Replace substrings for items in a list."""
         return [x if orig not in x else x.replace(orig, repl) for x in lst]
 
     cmd_list = list_string_sub("%F", filename, cmd_list)
@@ -338,7 +340,7 @@ def external_download(song, filename, url):
 
 
 def _download(song, filename, url=None, audio=False, allow_transcode=True):
-    """ Download file, show status.
+    """Download file, show status.
 
     Return filename or None in case of user specified download command.
 
@@ -360,14 +362,15 @@ def _download(song, filename, url=None, audio=False, allow_transcode=True):
 
     if not config.OVERWRITE.get:
         if os.path.exists(filename):
-            util.xprint("File exists. Skipping %s%s%s ..\n" %
-                    (c.r, filename, c.w))
+            util.xprint("File exists. Skipping %s%s%s ..\n" % (c.r, filename, c.w))
             time.sleep(0.2)
             return filename
 
     util.xprint("Downloading to %s%s%s .." % (c.r, filename, c.w))
-    status_string = ('  {0}{1:,}{2} Bytes [{0}{3:.2%}{2}] received. Rate: '
-                     '[{0}{4:4.0f} kbps{2}].  ETA: [{0}{5:.0f} secs{2}]')
+    status_string = (
+        '  {0}{1:,}{2} Bytes [{0}{3:.2%}{2}] received. Rate: '
+        '[{0}{4:4.0f} kbps{2}].  ETA: [{0}{5:.0f} secs{2}]'
+    )
 
     resp = urlopen(url)
     total = int(resp.info()['Content-Length'].strip())
@@ -409,14 +412,14 @@ def _download(song, filename, url=None, audio=False, allow_transcode=True):
     return filename
 
 
-def menu_prompt(model, prompt=" > ", rows=None, header=None, theading=None,
-                footer=None, force=0):
-    """ Generate a list of choice, returns item from model. """
+def menu_prompt(
+    model, prompt=" > ", rows=None, header=None, theading=None, footer=None, force=0
+):
+    """Generate a list of choice, returns item from model."""
     content = ""
 
     for x in header, theading, rows, footer:
         if isinstance(x, list):
-
             for line in x:
                 content += line + "\n"
 
@@ -432,8 +435,7 @@ def menu_prompt(model, prompt=" > ", rows=None, header=None, theading=None,
         return model[choice]
 
     elif force:
-        return menu_prompt(model, prompt, rows, header, theading, footer,
-                           force)
+        return menu_prompt(model, prompt, rows, header, theading, footer, force)
 
     elif not choice.strip():
         return False, False
@@ -443,7 +445,7 @@ def menu_prompt(model, prompt=" > ", rows=None, header=None, theading=None,
 
 
 def prompt_dl(song):
-    """ Prompt user do choose a stream to dl.  Return (url, extension). """
+    """Prompt user do choose a stream to dl.  Return (url, extension)."""
     # pylint: disable=R0914
     dl_data, p = get_dl_data(song)
     dl_text = gen_dl_text(dl_data, song, p)
@@ -473,7 +475,7 @@ def prompt_dl(song):
 
 
 def gen_dl_text(ddata, song, p):
-    """ Generate text for dl screen. """
+    """Generate text for dl screen."""
     hdr = []
     hdr.append("  %s%s%s" % (c.r, song.title, c.w))
     author = p.author
@@ -489,8 +491,7 @@ def gen_dl_text(ddata, song, p):
     content = []
 
     for n, d in enumerate(ddata):
-        row = (n + 1, d['ext'], d['quality'], d['mediatype'], d['size'],
-               d['notes'])
+        row = (n + 1, d['ext'], d['quality'], d['mediatype'], d['size'], d['notes'])
         fmt = "  {0}%-6s %-8s %-13s %-7s %5s Mb   %-16s{1}"
         row = fmt.format(c.g, c.w) % row
         content.append(row)
@@ -499,14 +500,15 @@ def gen_dl_text(ddata, song, p):
 
     footer = "Select [%s1-%s%s] to download or [%sEnter%s] to return"
     footer = [footer % (c.y, len(content) - 1, c.w, c.y, c.w)]
-    return(content, hdr, heading, footer)
+    return (content, hdr, heading, footer)
 
 
 def get_dl_data(song, mediatype="any"):
-    """ Get filesize and metadata for all streams, return dict. """
+    """Get filesize and metadata for all streams, return dict."""
+
     def mbsize(x):
-        """ Return size in MB. """
-        return str(int(x / (1024 ** 2)))
+        """Return size in MB."""
+        return str(int(x / (1024**2)))
 
     p = util.get_pafy(song)
     dldata = []
@@ -528,12 +530,14 @@ def get_dl_data(song, mediatype="any"):
             util.dbg(c.r + "---Error getting stream size" + c.w)
             size = 0
 
-        item = {'mediatype': stream.mediatype,
-                'size': size,
-                'ext': stream.extension,
-                'quality': stream.quality,
-                'notes': stream.notes,
-                'url': stream.url}
+        item = {
+            'mediatype': stream.mediatype,
+            'size': size,
+            'ext': stream.extension,
+            'quality': stream.quality,
+            'notes': stream.notes,
+            'url': stream.url,
+        }
 
         dldata.append(item)
 
@@ -543,7 +547,7 @@ def get_dl_data(song, mediatype="any"):
 
 @command(r'dlurl\s(.*[-_a-zA-Z0-9]{11}.*)', 'dlurl')
 def dl_url(url):
-    """ Open and prompt for download of youtube video url. """
+    """Open and prompt for download of youtube video url."""
     g.browse_mode = "normal"
     yt_url(url)
 
@@ -556,7 +560,7 @@ def dl_url(url):
 
 @command(r'daurl\s(.*[-_a-zA-Z0-9]{11}.*)', 'daurl')
 def da_url(url):
-    """ Open and prompt for download of youtube best audio from url. """
+    """Open and prompt for download of youtube best audio from url."""
     g.browse_mode = "normal"
     yt_url(url)
 

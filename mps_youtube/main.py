@@ -31,6 +31,7 @@ from . import util
 completer = None
 try:
     import readline
+
     readline.set_history_length(2000)
     has_readline = True
     completer = util.CommandCompleter()
@@ -54,7 +55,7 @@ except Exception as err:
 
 
 def matchfunction(func, regex, userinput):
-    """ Match userinput against regex.
+    """Match userinput against regex.
 
     Call func, return True if matches.
 
@@ -74,25 +75,24 @@ def matchfunction(func, regex, userinput):
 
         except IndexError:
             if g.debug_mode:
-                g.content = ''.join(traceback_py.format_exception(
-                    *sys.exc_info()))
+                g.content = ''.join(traceback_py.format_exception(*sys.exc_info()))
             g.message = util.F('invalid range')
             g.content = g.content or content.generate_songlist_display()
 
         except (ValueError, IOError) as e:
             if g.debug_mode:
-                g.content = ''.join(traceback_py.format_exception(
-                    *sys.exc_info()))
+                g.content = ''.join(traceback_py.format_exception(*sys.exc_info()))
             g.message = util.F('cant get track') % str(e)
-            g.content = g.content or\
-                content.generate_songlist_display(zeromsg=g.message)
+            g.content = g.content or content.generate_songlist_display(
+                zeromsg=g.message
+            )
 
-        except Exception as e:#pafy.GdataError as e:
+        except Exception as e:  # pafy.GdataError as e:
             import traceback
+
             traceback.print_exception(type(e), e, e.__traceback__)
             if g.debug_mode:
-                g.content = ''.join(traceback.format_exception(
-                    *sys.exc_info()))
+                g.content = ''.join(traceback.format_exception(*sys.exc_info()))
             g.message = util.F('no data') % e
             g.content = g.content
 
@@ -100,7 +100,7 @@ def matchfunction(func, regex, userinput):
 
 
 def prompt_for_exit():
-    """ Ask for exit confirmation. """
+    """Ask for exit confirmation."""
     g.message = c.r + "Press ctrl-c again to exit" + c.w
     g.content = content.generate_songlist_display()
     screen.update()
