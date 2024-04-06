@@ -1,3 +1,4 @@
+from collections import defaultdict
 import random
 import json
 import os
@@ -90,24 +91,31 @@ def play(pre, choice, post=""):
         selection = util.parse_multi(choice)
         songlist = [g.model[x - 1] for x in selection]
 
+        mark_changes: dict[str, list[str]] = defaultdict(list)
         for video in songlist:
             v_id = video.ytid
             g.meta[v_id]['status'] = 'viewed'
             channel_id = g.meta[v_id]['uploader']
+            mark_changes[channel_id].append(v_id)
+
+        for channel_id, changes in mark_changes.items():
             hist_file = os.path.join(g.CHANNELVIEWHISTFOLDER, f"{channel_id}.json")
             hist = None
-            if os.path.isfile(hist_file):
-                with open(hist_file, 'r+') as f:
-                    hist = json.loads(f.read())
+            if not os.path.isfile(hist_file):
+                continue
+
+            with open(hist_file, 'r+') as f:
+                hist = json.loads(f.read())
+                for v_id in changes:
                     hist['viewed'].append(v_id)
                     try:
                         hist['not_viewed'].remove(v_id)
                     except ValueError:
                         pass
 
-                    f.seek(0)
-                    f.write(json.dumps(hist))
-                    f.truncate()
+                f.seek(0)
+                f.write(json.dumps(hist))
+                f.truncate()
 
         # cache next result of displayed items
         # when selecting a single item
