@@ -241,12 +241,14 @@ Use 'set search_music False' to show results not in the Music category."""
         with open(hist_file, 'r') as f:
             hist = json.loads(f.read())
 
+    viewed = set(hist['viewed'])
+    not_viewed = set(hist['not_viewed'])
     for video in results:
         v_id = video['id']
-        if v_id in hist['viewed']:
+        if v_id in viewed:
             video['status'] = 'viewed'
 
-        elif v_id in hist['not_viewed']:
+        elif v_id in not_viewed:
             video['status'] = 'not_viewed'
 
         else:
