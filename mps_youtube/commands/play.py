@@ -1,4 +1,6 @@
 import random
+import json
+import os
 import sys
 import typing as T
 import webbrowser
@@ -87,6 +89,25 @@ def play(pre, choice, post=""):
 
         selection = util.parse_multi(choice)
         songlist = [g.model[x - 1] for x in selection]
+
+        for video in songlist:
+            v_id = video.ytid
+            g.meta[v_id]['status'] = 'viewed'
+            channel_id = g.meta[v_id]['uploader']
+            hist_file = os.path.join(g.CHANNELVIEWHISTFOLDER, f"{channel_id}.json")
+            hist = None
+            if os.path.isfile(hist_file):
+                with open(hist_file, 'r+') as f:
+                    hist = json.loads(f.read())
+                    hist['viewed'].append(v_id)
+                    try:
+                        hist['not_viewed'].remove(v_id)
+                    except ValueError:
+                        pass
+
+                    f.seek(0)
+                    f.write(json.dumps(hist))
+                    f.truncate()
 
         # cache next result of displayed items
         # when selecting a single item

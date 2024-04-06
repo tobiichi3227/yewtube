@@ -131,6 +131,11 @@ def channel_id_from_name(query):
 
 def all_videos_from_channel(channel_id):
     playlist = Playlist(playlist_from_channel_id(channel_id))
+    videos = playlist.videos
+
+    for video in videos:
+        del video['thumbnails']
+
     return playlist.videos
 
 

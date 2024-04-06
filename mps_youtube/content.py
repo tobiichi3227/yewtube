@@ -120,6 +120,14 @@ def generate_songlist_display(song=False, zeromsg=None):
 
     for n, x in enumerate(g.model[:max_results]):
         col = (c.r if n % 2 == 0 else c.p) if not song else c.b
+        if (status := g.meta[x.ytid]['status']) != '':
+            if status == 'viewed':
+                col = c.w
+            elif status == 'not_viewed':
+                col = c.g
+            elif status == 'new':
+                col = c.r
+
         details = {'title': x.title, "length": fmt_time(x.length)}
         details = copy.copy(g.meta[x.ytid]) if have_meta else details
         otitle = details['title']

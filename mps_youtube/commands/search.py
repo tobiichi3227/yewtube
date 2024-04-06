@@ -3,6 +3,7 @@ import json
 import logging
 import math
 import re
+import os
 import typing as T
 from argparse import ArgumentParser
 from datetime import datetime, timedelta
@@ -171,6 +172,7 @@ def channelsearch(q_user):
     g.message = "Results for channel search: '%s'" % q_user
 
 
+# TODO: 區分short跟normal video
 @command(r'user\s+(.+)', 'user')
 def usersearch(q_user, identify='forUsername'):
     """Fetch uploads by a YouTube user."""
@@ -189,6 +191,7 @@ def usersearch(q_user, identify='forUsername'):
     usersearch_id(user, channel_id, term)
 
 
+# TODO: 區分short跟normal video
 def usersearch_id(user, channel_id, term):
     """Performs a search within a user's (i.e. a channel's) uploads
     for an optional search term with the user (i.e. the channel)
@@ -222,6 +225,37 @@ Use 'set search_music False' to show results not in the Music category."""
             failmsg = "User %s not found or has no videos." % termuser[1]
     msg = str(msg).format(c.w, c.y, c.y, term, user)
     results = pafy.all_videos_from_channel(channel_id)
+
+    # Save and Set channel view history
+    hist_file = os.path.join(g.CHANNELVIEWHISTFOLDER, f"{channel_id}.json")
+    hist = None
+    if not os.path.isfile(hist_file):
+        hist = {
+            'viewed': [],
+            'not_viewed': [],
+        }
+        with open(hist_file, 'w') as f:
+            f.write(json.dumps(hist))
+
+    else:
+        with open(hist_file, 'r') as f:
+            hist = json.loads(f.read())
+
+    for video in results:
+        v_id = video['id']
+        if v_id in hist['viewed']:
+            video['status'] = 'viewed'
+
+        elif v_id in hist['not_viewed']:
+            video['status'] = 'not_viewed'
+
+        else:
+            video['status'] = 'new'
+            hist['not_viewed'].append(v_id)
+
+    with open(hist_file, 'w') as f:
+        f.write(json.dumps(hist))
+
     _display_search_results(progtext, results, msg, failmsg)
 
 
@@ -443,6 +477,7 @@ def get_tracks_from_json(jsons):
 
             # cache video information in custom global variable store
             g.meta[ytid] = dict(
+                status=item.get('status', ''),
                 # tries to get localized title first, fallback to normal title
                 title=title,
                 length=str(util.fmt_time(cursong.length)),

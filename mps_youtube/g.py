@@ -59,6 +59,9 @@ PLFOLDER = os.path.join(paths.get_config_dir(), "playlists")
 OLDHISTFILE = os.path.join(paths.get_config_dir(), "play_history")
 HISTFILE = os.path.join(paths.get_config_dir(), "play_history.m3u")
 CACHEFILE = os.path.join(paths.get_config_dir(), "cache_py_" + sys.version[0:5])
+CHANNELVIEWHISTFOLDER = os.path.join(paths.get_config_dir(), "channel_view_history")
+if not os.path.isdir(CHANNELVIEWHISTFOLDER):
+    os.mkdir(CHANNELVIEWHISTFOLDER)
 READLINE_FILE = None
 PLAYER_OBJ = None
 categories = {
