@@ -94,6 +94,9 @@ def play(pre, choice, post=""):
         mark_changes: dict[str, list[str]] = defaultdict(list)
         for video in songlist:
             v_id = video.ytid
+            if v_id not in g.meta:
+                continue
+
             g.meta[v_id]['status'] = 'viewed'
             channel_id = g.meta[v_id]['uploader']
             mark_changes[channel_id].append(v_id)
