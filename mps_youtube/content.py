@@ -120,7 +120,7 @@ def generate_songlist_display(song=False, zeromsg=None):
 
     for n, x in enumerate(g.model[:max_results]):
         col = (c.r if n % 2 == 0 else c.p) if not song else c.b
-        if (status := g.meta[x.ytid]['status']) != '':
+        if have_meta and (status := g.meta[x.ytid]['status']) != '':
             if status == 'viewed':
                 col = c.w
             elif status == 'not_viewed':
