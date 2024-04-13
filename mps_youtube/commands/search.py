@@ -172,12 +172,24 @@ def channelsearch(q_user):
     g.message = "Results for channel search: '%s'" % q_user
 
 
+user_search_parser = ArgumentParser()
+user_search_parser.add_argument('-a', '--all', action='store_true')
+user_search_parser.add_argument('-s', '--short', action='store_true')
+user_search_parser.add_argument('user', nargs='+')
+
 # TODO: 區分short跟normal video
 @command(r'user\s+(.+)', 'user')
-def usersearch(q_user, identify='forUsername'):
+def usersearch(query, identify='forUsername'):
     """Fetch uploads by a YouTube user."""
+    try:
+        args = user_search_parser.parse_args(query.split())
+        user = ''.join(args.user)
+        all_video = True if args.all else False
+        short_video = True if args.short else False
+    except SystemExit:
+        g.message = f"{c.b}Bad syntax. Enter h for help{c.w}"
+        return
 
-    user, _, term = (x.strip() for x in q_user.partition("/"))
     if identify == 'forUsername':
         ret = channelfromname(user)
         if not ret:  # Error
@@ -188,11 +200,11 @@ def usersearch(q_user, identify='forUsername'):
         channel_id = user
 
     # at this point, we know the channel id associated to a user name
-    usersearch_id(user, channel_id, term)
+    usersearch_id(user, channel_id, '', all_video, short_video)
 
 
 # TODO: 區分short跟normal video
-def usersearch_id(user, channel_id, term):
+def usersearch_id(user, channel_id, term, all_video=False, short_video=False):
     """Performs a search within a user's (i.e. a channel's) uploads
     for an optional search term with the user (i.e. the channel)
     identified by its ID"""
@@ -224,7 +236,7 @@ Use 'set search_music False' to show results not in the Music category."""
         else:
             failmsg = "User %s not found or has no videos." % termuser[1]
     msg = str(msg).format(c.w, c.y, c.y, term, user)
-    results = pafy.all_videos_from_channel(channel_id)
+    results = pafy.all_videos_from_channel(channel_id, all_video, short_video)
 
     # Save and Set channel view history
     hist_file = os.path.join(g.CHANNELVIEWHISTFOLDER, f"{channel_id}.json")

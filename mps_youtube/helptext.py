@@ -80,7 +80,10 @@ def helptext():
     listed in that videos description. (Alternatively one can use {2}--description{1})
 
     {2}user <username>{1} - list YouTube uploads by <username>.
-    {2}user <username>/<query>{1} - as above, but matches <query>.
+    Search Arguments:
+    {2}-a, --all{1}   List all videos
+    {2}-s, --short{1} Let short videos in search results (Short video means which duration less than one minute.)
+
     {2}userpl <username>{1} - list YouTube playlists created by <username>.
     {2}pl <url or id>{1} - Open YouTube playlist by url or id.
     {2}url <url or id>{1} - Retrieve specific YouTube video by url or id.

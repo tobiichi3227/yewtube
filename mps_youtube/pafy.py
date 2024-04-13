@@ -129,15 +129,22 @@ def channel_id_from_name(query):
     return (channel_id, channel_name)
 
 
-def all_videos_from_channel(channel_id):
+def all_videos_from_channel(channel_id, all_video=False, short_video=False):
     playlist = Playlist(playlist_from_channel_id(channel_id))
 
-    while playlist.hasMoreVideos:
+    while all_video and playlist.hasMoreVideos:
         playlist.getNextVideos()
 
-    videos = playlist.videos
-    for video in videos:
+    videos = []
+    for video in playlist.videos:
+        duration = video['duration']
+        minute = int(duration.split(':')[-2])
+        if not short_video and minute == 0:
+            continue
+
         del video['thumbnails']
+
+        videos.append(video)
 
     return videos
 
