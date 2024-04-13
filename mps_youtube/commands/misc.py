@@ -1,4 +1,6 @@
 import re
+import os
+import json
 from datetime import datetime, timedelta
 import socket
 import traceback
@@ -361,3 +363,46 @@ def clear_history():
     history.save()
     g.message = "History cleared"
     g.content = logo()
+
+@command(r'm\s?(\d{1,4})\s*(-n)*', 'm')
+def mark_video_viewed(number, reversed):
+    number = int(number)
+    v_id = g.model[number - 1].ytid
+    if v_id not in g.meta:
+        return
+
+    reversed = reversed == '-n'
+
+    if not reversed:
+        g.meta[v_id]['status'] = 'viewed'
+    else:
+        g.meta[v_id]['status'] = 'not_viewed'
+
+    channel_id = g.meta[v_id]['uploader']
+
+    hist_file = os.path.join(g.CHANNELVIEWHISTFOLDER, f"{channel_id}.json")
+    if not os.path.isfile(hist_file):
+        return
+
+    with open(hist_file, 'r+') as f:
+        hist = json.loads(f.read())
+
+        if not reversed:
+            hist['viewed'].append(v_id)
+            try:
+                hist['not_viewed'].remove(v_id)
+            except ValueError:
+                pass
+        else:
+            hist['not_viewed'].append(v_id)
+            try:
+                hist['viewed'].remove(v_id)
+            except ValueError:
+                pass
+
+        f.seek(0)
+        f.write(json.dumps(hist))
+        f.truncate()
+
+    g.message = "Mark video status successfully"
+    g.content = generate_songlist_display()
